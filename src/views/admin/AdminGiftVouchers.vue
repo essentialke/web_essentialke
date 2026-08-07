@@ -83,7 +83,7 @@
                                     {{ voucher.code }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    ${{ voucher.amount.toFixed(2) }}
+                                    KSh {{ voucher.amount.toFixed(2) }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     {{

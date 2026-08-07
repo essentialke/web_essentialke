@@ -188,7 +188,7 @@ function formatValue(value, key) {
 
     // Format price as currency
     if (key === "price" && value !== null) {
-        return `$${parseFloat(value).toFixed(2)}`;
+        return `KSh ${parseFloat(value).toFixed(2)}`;
     }
 
     // Format dates

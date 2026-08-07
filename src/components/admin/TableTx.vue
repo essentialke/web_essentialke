@@ -221,7 +221,9 @@ function formatValue(value, format) {
         case "datetime":
             return new Date(value).toLocaleString();
         case "currency":
-            return typeof value === "number" ? `$${value.toFixed(2)}` : value;
+            return typeof value === "number"
+                ? `KSh ${value.toFixed(2)}`
+                : value;
         case "percentage":
             return typeof value === "number" ? `${value.toFixed(2)}%` : value;
         default:

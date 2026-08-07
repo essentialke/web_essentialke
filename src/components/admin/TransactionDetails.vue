@@ -47,7 +47,7 @@
         <div v-if="transaction.type === 'purchase'" class="mb-6">
             <h4 class="font-semibold text-lg mb-4">Purchase Details</h4>
             <p class="mb-2">
-                <strong class="font-semibold">Amount:</strong> KES
+                <strong class="font-semibold">Amount:</strong> KSh
                 {{ transaction.amount?.toFixed(2) }}
             </p>
             <p v-if="transaction.paymentReference" class="mb-2">
@@ -92,7 +92,7 @@
                     <div class="text-sm text-gray-600">
                         <span>Quantity: {{ item.quantity }}</span>
                         <span v-if="item.price" class="ml-4">
-                            Price: KES {{ item.price.toFixed(2) }}
+                            Price: KSh {{ item.price.toFixed(2) }}
                         </span>
                     </div>
                 </div>

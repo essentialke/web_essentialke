@@ -84,7 +84,7 @@
                             id="min-price"
                             v-model="filters.minPrice"
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                            placeholder="$0"
+                            placeholder="KSh 0"
                         />
                     </div>
                     <div class="flex-1">
@@ -98,7 +98,7 @@
                             id="max-price"
                             v-model="filters.maxPrice"
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                            placeholder="$999"
+                            placeholder="KSh 999"
                         />
                     </div>
                 </div>
