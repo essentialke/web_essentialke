@@ -41,9 +41,7 @@ library.add(
   faMoneyCheckAlt,
 );
 
-axios.defaults.baseURL = import.meta.env.DEV
-  ? "http://localhost:3000/api"
-  : "https://u888w80wkcwg8g0wc444so0o.cloud.elevatika.com/api";
+axios.defaults.baseURL = import.meta.env.VITE_API_URL;
 
 axios.interceptors.request.use(
   (config) => {
