@@ -7,7 +7,7 @@ const imageUrl = computed(() => {
     const path = props.product.coverImageUrl;
     if (!path) return "";
     if (path.startsWith("http")) return path;
-    const base = import.meta.env.DEV ? "http://localhost:3000" : "https://u888w80wkcwg8g0wc444so0o.cloud.elevatika.com";
+    const base = import.meta.env.DEV ? "http://localhost:3000" : import.meta.env.VITE_ASSET_URL;
     return `${base}${path}`;
 });
 const price = computed(() => Number(props.product.price || 0).toLocaleString("en-KE", { minimumFractionDigits: 0 }));

@@ -125,7 +125,7 @@ const getImageUrl = (imageUrl) => {
     } else {
         const baseUrl = import.meta.env.DEV
             ? "http://localhost:3000"
-            : "https://u888w80wkcwg8g0wc444so0o.cloud.elevatika.com";
+            : import.meta.env.VITE_ASSET_URL;
         return `${baseUrl}${imageUrl}`;
     }
 };

@@ -366,7 +366,9 @@ const imagePreviewUrl = computed(() => {
         if (formData.value.imageUrl.startsWith("http")) {
             return formData.value.imageUrl;
         } else {
-            const baseUrl = import.meta.env.DEV ? "http://localhost:3000" : "";
+            const baseUrl = import.meta.env.DEV
+                ? "http://localhost:3000"
+                : import.meta.env.VITE_ASSET_URL;
             return `${baseUrl}${formData.value.imageUrl}`;
         }
     }
