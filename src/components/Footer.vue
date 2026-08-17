@@ -14,7 +14,7 @@ function subscribe(){ snackbar.addSnackbar({ message: "Welcome to our circle.", 
             <div><h3>Care</h3><RouterLink to="/page/shipping">Shipping & returns</RouterLink><RouterLink to="/page/care">Jewelry care</RouterLink><RouterLink to="/page/warranty">Warranty</RouterLink><RouterLink to="/page/faq">FAQ</RouterLink><RouterLink to="/about">Contact us</RouterLink></div>
             <div class="signup"><h3>The private list</h3><p>New pieces, considered stories, and private offers—sent occasionally.</p><form @submit.prevent="subscribe"><input v-model="email" required type="email" placeholder="Your email address"><button aria-label="Subscribe">→</button></form><small>By subscribing, you agree to our privacy policy.</small></div>
         </div>
-        <div class="footer-bottom"><span>© {{ new Date().getFullYear() }} Best Traders</span><div><span>VISA</span><span>mastercard</span><span>M-PESA</span></div><div><RouterLink to="/page/privacy">Privacy</RouterLink><RouterLink to="/page/terms">Terms</RouterLink></div></div>
+        <div class="footer-bottom"><span>© {{ new Date().getFullYear() }} Essential</span><div><span>VISA</span><span>mastercard</span><span>M-PESA</span></div><div><RouterLink to="/page/privacy">Privacy</RouterLink><RouterLink to="/page/terms">Terms</RouterLink></div></div>
     </footer>
 </template>
 <style scoped>

@@ -1,14 +1,12 @@
 <script setup>
 import { computed, ref } from "vue";
 import { RouterLink } from "vue-router";
+import { resolveAssetUrl } from "../utils/assetUrl";
 const props = defineProps({ product: { type: Object, required: true } });
 const failed = ref(false);
 const imageUrl = computed(() => {
     const path = props.product.coverImageUrl;
-    if (!path) return "";
-    if (path.startsWith("http")) return path;
-    const base = import.meta.env.DEV ? "http://localhost:3000" : import.meta.env.VITE_ASSET_URL;
-    return `${base}${path}`;
+    return resolveAssetUrl(path);
 });
 const price = computed(() => Number(props.product.price || 0).toLocaleString("en-KE", { minimumFractionDigits: 0 }));
 </script>
@@ -19,7 +17,7 @@ const price = computed(() => Number(props.product.price || 0).toLocaleString("en
             <span class="badge">{{ product.featured ? 'Bestseller' : 'New' }}</span>
             <button class="wish" aria-label="Add to wishlist" @click.prevent>♡</button>
             <img v-if="imageUrl && !failed" :src="imageUrl" :alt="product.title" @error="failed = true" loading="lazy" />
-            <div v-else class="image-placeholder"><span>Best Traders</span></div>
+            <div v-else class="image-placeholder"><span>Essential</span></div>
             <span class="quick-view">View piece</span>
         </RouterLink>
         <div class="product-info">

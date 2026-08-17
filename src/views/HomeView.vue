@@ -4,11 +4,21 @@ import axios from "axios";
 import HeroSection from "../components/sections/HeroSection.vue";
 import FeaturedProductsSection from "../components/sections/FeaturedProductsSection.vue";
 
-const featuredProducts = ref([]);
+const latestProducts = ref([]);
 const heroContent = ref(null);
 onMounted(async () => {
-    const [products, hero] = await Promise.allSettled([axios.get("/products?featured=true"), axios.get("/contents/hero")]);
-    if (products.status === "fulfilled") featuredProducts.value = products.value.data.products || [];
+    const [products, hero] = await Promise.allSettled([
+        axios.get("/products", {
+            params: {
+                sortBy: "createdAt",
+                sortOrder: "desc",
+                page: 1,
+                limit: 8,
+            },
+        }),
+        axios.get("/contents/hero"),
+    ]);
+    if (products.status === "fulfilled") latestProducts.value = products.value.data.products || [];
     if (hero.status === "fulfilled") heroContent.value = hero.value.data?.content || null;
 });
 
@@ -21,7 +31,7 @@ const categories = ["Necklaces", "Rings", "Bracelets", "Earrings", "Chains", "Gi
         <nav class="category-row" aria-label="Shop by category">
             <RouterLink v-for="category in categories" :key="category" :to="{ path: '/products', query: { category } }">{{ category }}</RouterLink>
         </nav>
-        <FeaturedProductsSection :products="featuredProducts" />
+        <FeaturedProductsSection :products="latestProducts" />
 
         <section class="reviews">
             <div class="review-heading"><p class="kicker">Worn and loved</p><h2>Notes from our community</h2></div>

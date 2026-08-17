@@ -403,22 +403,8 @@
                             Payment Instructions
                         </h3>
                         <p class="text-gray-700 whitespace-pre-line">
-                            {{ paymentInfo.CustomerMessage }}
-                        </p>
-                    </div>
-
-                    <!-- QR Code Section -->
-                    <div v-if="qrCodeUrl" class="mb-6 text-center">
-                        <h3 class="font-medium text-gray-800 mb-2">
-                            Scan QR Code to Pay
-                        </h3>
-                        <img
-                            :src="qrCodeUrl"
-                            alt="Payment QR Code"
-                            class="mx-auto h-48 w-48 object-contain"
-                        />
-                        <p class="text-sm text-gray-600 mt-2">
-                            Use your M-PESA app to scan this QR code
+                            Check your phone for the M-PESA prompt and enter
+                            your PIN to complete payment.
                         </p>
                     </div>
 
@@ -483,7 +469,6 @@ import { useUserStore } from "../stores/user";
 import { useRouter } from "vue-router";
 import axios from "axios";
 import { useSnackbarStore } from "../stores/snackbar";
-import QRCode from "qrcode";
 
 const router = useRouter();
 const cartStore = useCartStore();
@@ -515,7 +500,6 @@ const appliedGiftVoucherAmount = ref(0);
 // Payment status tracking
 const showPaymentStatus = ref(false);
 const paymentInfo = ref(null);
-const qrCodeUrl = ref("");
 const paymentStatus = ref("PENDING");
 const statusMessage = ref("Waiting for payment...");
 const paymentError = ref("");
@@ -650,13 +634,10 @@ const placeOrder = async () => {
             showPaymentStatus.value = true;
 
             // Store payment info
-            paymentInfo.value = response.data.sasaPayOrder;
+            paymentInfo.value = response.data.darajaPayment;
 
             // Start status polling
             startStatusPolling(transactionId.value);
-
-            // Generate QR code if possible
-            await generateQRCode(response.data.sasaPayOrder);
 
             // Reset form values
             appliedDiscount.value = 0;
@@ -677,34 +658,6 @@ const placeOrder = async () => {
         });
     } finally {
         isPlacingOrder.value = false;
-    }
-};
-
-const generateQRCode = async (paymentData) => {
-    if (!paymentData || !paymentData.CustomerMessage) return;
-
-    try {
-        // Extract payment details from the CustomerMessage
-        const businessNumberMatch = paymentData.CustomerMessage.match(
-            /BUSINESS NUMBER:\s*(\d+)/,
-        );
-        const accountNumberMatch = paymentData.CustomerMessage.match(
-            /ACCOUNT NUMBER:\s*(\w+)/,
-        );
-        const amountMatch =
-            paymentData.CustomerMessage.match(/AMOUNT:\s*(\d+)/);
-
-        if (businessNumberMatch && accountNumberMatch && amountMatch) {
-            const businessNumber = businessNumberMatch[1];
-            const accountNumber = accountNumberMatch[1];
-            const amount = amountMatch[1];
-
-            // Format QR code data for M-PESA
-            const qrData = `PB|${businessNumber}|${amount}|${accountNumber}`;
-            qrCodeUrl.value = await QRCode.toDataURL(qrData);
-        }
-    } catch (error) {
-        console.error("Error generating QR code:", error);
     }
 };
 
@@ -802,7 +755,6 @@ const cancelPayment = () => {
     // Reset payment UI
     showPaymentStatus.value = false;
     paymentInfo.value = null;
-    qrCodeUrl.value = "";
     paymentStatus.value = "PENDING";
     statusMessage.value = "Waiting for payment...";
     paymentError.value = "";

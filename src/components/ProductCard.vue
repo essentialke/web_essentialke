@@ -119,6 +119,7 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faCartPlus, faHeart } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { computed } from "vue";
+import { resolveAssetUrl } from "../utils/assetUrl";
 
 library.add(faCartPlus, faHeart);
 
@@ -134,16 +135,7 @@ const userStore = useUserStore();
 const wishlistStore = useWishlistStore();
 const snackbarStore = useSnackbarStore();
 
-const imageUrl = computed(() => {
-    if (props.product.coverImageUrl.startsWith("http")) {
-        return props.product.coverImageUrl;
-    } else {
-        const baseUrl = import.meta.env.DEV
-            ? "http://localhost:3000"
-            : import.meta.env.VITE_ASSET_URL;
-        return `${baseUrl}${props.product.coverImageUrl}`;
-    }
-});
+const imageUrl = computed(() => resolveAssetUrl(props.product.coverImageUrl));
 
 async function handleAddToCart() {
     if (!userStore.isAuthenticated) {

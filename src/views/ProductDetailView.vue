@@ -432,6 +432,7 @@ import { useSnackbarStore } from "../stores/snackbar";
 import ProductCard from "../components/ProductCard.vue";
 
 import axios from "axios";
+import { resolveAssetUrl } from "../utils/assetUrl";
 
 const route = useRoute();
 const router = useRouter();
@@ -465,18 +466,7 @@ const newReview = ref({
 // Check if coming from /library route using query parameter
 isFromLibrary.value = route.query.from === "library";
 
-const imageUrl = computed(() => (coverImageUrl) => {
-    if (!coverImageUrl) return ""; // Handle cases where coverImageUrl might be null or undefined
-
-    if (coverImageUrl.startsWith("http")) {
-        return coverImageUrl;
-    } else {
-        const baseUrl = import.meta.env.DEV
-            ? "http://localhost:3000"
-            : import.meta.env.VITE_ASSET_URL;
-        return `${baseUrl}${coverImageUrl}`;
-    }
-});
+const imageUrl = computed(() => resolveAssetUrl);
 
 // Fetch product details and related products
 onMounted(async () => {
