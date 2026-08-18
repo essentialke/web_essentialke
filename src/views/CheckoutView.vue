@@ -634,7 +634,7 @@ const placeOrder = async () => {
             showPaymentStatus.value = true;
 
             // Store payment info
-            paymentInfo.value = response.data.darajaPayment;
+            paymentInfo.value = response.data.intasendPayment;
 
             // Start status polling
             startStatusPolling(transactionId.value);

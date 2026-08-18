@@ -115,8 +115,9 @@ const links = [
     {
         to: "/admin/content", 
         icon: "cog", 
-        name: "Settings",
+        name: "Website Settings",
     },
+    { to: "/admin/payment-settings", icon: "money-check-alt", name: "Payment Settings" },
 ];
 
 const isActive = (path) => {

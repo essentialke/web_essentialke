@@ -115,7 +115,7 @@
                                 <span class="text-xs sm:text-sm text-gray-600"
                                     >Order ID: {{ transaction.id }} | Reference:
                                     #{{
-                                        transaction.darajaMerchantRequestId ||
+                                        transaction.intasendApiRef ||
                                         transaction.paymentReference ||
                                         "N/A"
                                     }}</span

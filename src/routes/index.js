@@ -35,6 +35,7 @@ import AdminGiftVouchers from "@/views/admin/AdminGiftVouchers.vue";
 import AdminGeneralPosts from "@/views/admin/AdminGeneralPosts.vue"; // Import AdminGeneralPosts
 import AdminReviews from "@/views/admin/AdminReviews.vue"; // Import AdminReviews - assuming you have this as well
 import AdminContentView from "@/views/admin/AdminContentView.vue";
+import AdminPaymentSettings from "@/views/admin/AdminPaymentSettings.vue";
 
 const routes = [
   {
@@ -195,6 +196,11 @@ const routes = [
         path: "content",
         name: "AdminContent",
         component: AdminContentView,
+      },
+      {
+        path: "payment-settings",
+        name: "AdminPaymentSettings",
+        component: AdminPaymentSettings,
       },
       {
         path: "", // Redirect to Library by default - adjusted as per your previous config
