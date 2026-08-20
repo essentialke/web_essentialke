@@ -272,10 +272,14 @@
                             </div>
                             <input
                                 type="file"
+                                accept="image/jpeg,image/png,image/webp"
                                 @change="(e) => handleImageChange(e, index)"
                                 class="block text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-secondary"
                             />
                         </div>
+                        <p class="mt-2 text-xs text-gray-500">
+                            Use a landscape image at least 1600 × 900 px; 1920 × 1080 px or larger is recommended.
+                        </p>
                     </div>
 
                     <div class="mb-3">
@@ -494,9 +498,43 @@ const removeSlide = (index) => {
     }
 };
 
-const handleImageChange = (event, index) => {
+const getImageDimensions = (file) =>
+    new Promise((resolve, reject) => {
+        const image = new Image();
+        const url = URL.createObjectURL(file);
+        image.onload = () => {
+            resolve({ width: image.naturalWidth, height: image.naturalHeight });
+            URL.revokeObjectURL(url);
+        };
+        image.onerror = () => {
+            reject(new Error("Could not read the selected image."));
+            URL.revokeObjectURL(url);
+        };
+        image.src = url;
+    });
+
+const handleImageChange = async (event, index) => {
     const file = event.target.files[0];
     if (file) {
+        try {
+            const { width, height } = await getImageDimensions(file);
+            if (width < 1600 || height < 900) {
+                event.target.value = "";
+                snackbarStore.addSnackbar({
+                    message: `Hero image is ${width} × ${height} px. Please use at least 1600 × 900 px.`,
+                    type: "error",
+                });
+                return;
+            }
+        } catch (error) {
+            event.target.value = "";
+            snackbarStore.addSnackbar({
+                message: error.message,
+                type: "error",
+            });
+            return;
+        }
+
         // Store the original path
         const originalPath = formData.value.rightSection.slides[index].image;
 

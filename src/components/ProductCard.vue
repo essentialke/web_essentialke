@@ -1,6 +1,7 @@
 <template>
     <div
         class="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-200 flex flex-col h-full"
+        :class="{ 'product-card--compact': compact }"
     >
         <!-- Image Container - Fixed aspect ratio -->
         <div class="relative overflow-hidden product-cover-container">
@@ -65,7 +66,7 @@
                         {{ product.title }}
                     </RouterLink>
                 </h2>
-                <p class="text-gray-600 text-sm">
+                <p v-if="product.author" class="text-gray-600 text-sm">
                     by <span class="font-medium">{{ product.author }}</span>
                 </p>
             </div>
@@ -127,6 +128,10 @@ const props = defineProps({
     product: {
         type: Object,
         required: true,
+    },
+    compact: {
+        type: Boolean,
+        default: false,
     },
 });
 
@@ -210,5 +215,44 @@ async function handleAddToWishlist() {
     transition-property: all;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 300ms;
+}
+
+.product-card--compact {
+    border-radius: 0.5rem;
+}
+
+.product-card--compact .product-cover-container {
+    aspect-ratio: 4/5;
+}
+
+.product-card--compact > div:last-child {
+    padding: 1rem;
+}
+
+.product-card--compact h2 {
+    font-size: 1rem;
+    margin-bottom: 0;
+}
+
+.product-card--compact .line-clamp-3 {
+    -webkit-line-clamp: 2;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    margin-bottom: 0.75rem;
+}
+
+.product-card--compact button {
+    padding: 0.55rem 0.7rem;
+    font-size: 0.75rem;
+}
+
+.product-card--compact .product-cover-container > button {
+    top: 0.65rem;
+    right: 0.65rem;
+    padding: 0.45rem;
+}
+
+.product-card--compact .mt-auto {
+    padding-top: 0.75rem;
 }
 </style>

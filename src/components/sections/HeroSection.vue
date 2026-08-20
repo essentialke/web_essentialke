@@ -1,10 +1,31 @@
 <script setup>
 import { computed } from "vue";
 import { RouterLink } from "vue-router";
+import { resolveAssetUrl } from "../../utils/assetUrl";
 
 const props = defineProps({ content: { type: Object, default: null } });
 const slide = computed(() => props.content?.rightSection?.slides?.[0]);
-const heroImage = "/essential-hero.jpg";
+const heroImage = computed(() =>
+    resolveAssetUrl(slide.value?.image || "/essential-hero.jpg"),
+);
+const cloudinaryVariant = (url, width) => {
+    if (!url?.includes("res.cloudinary.com") || !url.includes("/image/upload/")) {
+        return url;
+    }
+
+    return url.replace(
+        "/image/upload/",
+        `/image/upload/f_auto,q_auto:best,w_${width}/`,
+    );
+};
+const heroSrc = computed(() => cloudinaryVariant(heroImage.value, 1920));
+const heroSrcset = computed(() => {
+    if (!heroImage.value?.includes("res.cloudinary.com")) return undefined;
+
+    return [768, 1280, 1920, 2560]
+        .map((width) => `${cloudinaryVariant(heroImage.value, width)} ${width}w`)
+        .join(", ");
+});
 const title = computed(() => {
     const t = props.content?.leftSection?.title;
     return [t?.mainText, t?.highlightedText, t?.endText].filter(Boolean).join(" ") || "Find yourself through meaningful jewelry";
@@ -14,7 +35,16 @@ const description = computed(() => props.content?.leftSection?.description || "T
 
 <template>
     <section class="hero" :class="{ 'hero-with-image': heroImage }">
-        <img v-if="heroImage" :src="heroImage" :alt="slide?.alt || title" class="hero-image" />
+        <img
+            v-if="heroImage"
+            :src="heroSrc"
+            :srcset="heroSrcset"
+            sizes="100vw"
+            :alt="slide?.alt || title"
+            class="hero-image"
+            fetchpriority="high"
+            decoding="async"
+        />
         <div class="hero-wash"></div>
         <div class="hero-content">
             <p class="eyebrow">The signature collection · 2026</p>
