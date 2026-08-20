@@ -83,6 +83,7 @@
                         type="file"
                         id="coverImage"
                         ref="fileInput"
+                        accept="image/jpeg,image/png,image/gif"
                         @change="onFileSelected"
                         class="mt-1 block w-full"
                     />
@@ -323,11 +324,6 @@ const validateForm = () => {
         isValid = false;
     }
 
-    if (!formData.value.author) {
-        errors.value.author = "Author is required.";
-        isValid = false;
-    }
-
     if (formData.value.price === null) {
         errors.value.price = "Price is required.";
         isValid = false;
@@ -335,11 +331,6 @@ const validateForm = () => {
 
     if (formData.value.quantityShop === null) {
         errors.value.quantityShop = "Quantity in shop is required.";
-        isValid = false;
-    }
-
-    if (formData.value.quantityLibraryTotal === null) {
-        errors.value.quantityLibraryTotal = "Quantity in library is required.";
         isValid = false;
     }
 
@@ -354,6 +345,14 @@ const validateForm = () => {
 const onFileSelected = (event) => {
     const file = event.target.files[0];
     if (file) {
+        if (file.size > 2 * 1024 * 1024) {
+            errors.value.coverImage = "Cover image must be 2 MB or smaller.";
+            event.target.value = "";
+            formData.value.coverImage = null;
+            return;
+        }
+
+        errors.value.coverImage = null;
         formData.value.coverImage = file;
         // Create a local URL for preview
         localImageUrl.value = URL.createObjectURL(file);

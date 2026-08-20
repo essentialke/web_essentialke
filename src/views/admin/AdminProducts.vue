@@ -170,11 +170,13 @@
 import { ref, onMounted, reactive, watch } from "vue";
 import axios from "axios";
 import { activeLeafCategories, copyDefaultCategories } from "../../config/catalog";
+import { useSnackbarStore } from "../../stores/snackbar";
 import Modal from "../../components/Modal.vue";
 import ProductForm from "../../components/admin/ProductForm.vue";
 import ProductTable from "../../components/admin/ProductTable.vue";
 
 const products = ref([]);
+const snackbar = useSnackbarStore();
 const showModal = ref(false);
 const editingProduct = ref(null);
 const totalProducts = ref(0);
@@ -361,8 +363,21 @@ async function saveProduct(productData) {
         }
         await fetchProducts();
         closeModal();
+        snackbar.addSnackbar({
+            message: editingProduct.value
+                ? "Product updated successfully"
+                : "Product created successfully",
+            type: "success",
+        });
     } catch (error) {
         console.error("Error saving product:", error);
+        snackbar.addSnackbar({
+            message:
+                error.response?.data?.error ||
+                error.response?.data?.message ||
+                "Could not save product",
+            type: "error",
+        });
     }
 }
 
