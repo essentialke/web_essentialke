@@ -1,0 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=GFS+Didot&family=Geist:ital,wght@0,100..900;1,100..900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color: #1a1a1a; background: #f7f3ed; font-family: 'Geist', Arial, sans-serif; font-synthesis: none; --font-display: 'GFS Didot', Georgia, serif; --font-body: 'Geist', Arial, sans-serif; }
+html { scroll-behavior: smooth; }
+body { margin: 0; min-width: 320px; background: #f7f3ed; font-size: 15px; line-height: 1.6; font-weight: 400; }
+*, *::before, *::after { box-sizing: border-box; }
+a { color: inherit; text-decoration: none; }
+button, input { font: inherit; }
+button { cursor: pointer; border: 0; background: none; }
+h1, h2, h3 { text-wrap: balance; }
+p { text-wrap: pretty; }
+::selection { background: #c9a45c; color: #1a1a1a; }
+#app { min-height: 100vh; display: flex; flex-direction: column; }
