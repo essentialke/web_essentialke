@@ -1,6 +1,6 @@
 <template>
-  <div class="container mx-auto px-4 py-8 max-w-3xl">
-    <h2 class="text-2xl font-bold mb-2">Payment Gateway</h2>
+  <div :class="embedded ? 'max-w-3xl' : 'container mx-auto px-4 py-8 max-w-3xl'">
+    <h2 :id="headingId" class="text-2xl font-bold mb-2">IntaSend Settings</h2>
     <p class="text-gray-600 mb-6">IntaSend is the active gateway. Daraja is currently inactive.</p>
 
     <form @submit.prevent="save" class="bg-white shadow rounded-lg p-6 space-y-5">
@@ -40,6 +40,11 @@
 import { computed, onMounted, ref } from 'vue';
 import axios from 'axios';
 import { useSnackbarStore } from '../../stores/snackbar';
+
+defineProps({
+  embedded: { type: Boolean, default: false },
+  headingId: { type: String, default: undefined },
+});
 
 const snackbar = useSnackbarStore();
 const saving = ref(false), secretKeyConfigured = ref(false), challengeConfigured = ref(false);
