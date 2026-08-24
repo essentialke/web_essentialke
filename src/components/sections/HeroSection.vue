@@ -6,7 +6,7 @@ import { resolveAssetUrl } from "../../utils/assetUrl";
 const props = defineProps({ content: { type: Object, default: null } });
 const slide = computed(() => props.content?.rightSection?.slides?.[0]);
 const heroImage = computed(() =>
-    resolveAssetUrl(slide.value?.image || "/essential-hero.jpg"),
+    slide.value?.image ? resolveAssetUrl(slide.value.image) : "/essential-hero.jpg",
 );
 const cloudinaryVariant = (url, width) => {
     if (!url?.includes("res.cloudinary.com") || !url.includes("/image/upload/")) {
