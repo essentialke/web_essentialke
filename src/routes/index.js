@@ -9,6 +9,8 @@ import AcceptInvitationView from "../views/AcceptInvitationView.vue";
 import ProductView from "../views/ProductView.vue";
 import ProductDetailsView from "../views/ProductDetailView.vue";
 import VerifyEmailView from "../views/VerifyEmailView.vue";
+import ForgotPasswordView from "../views/ForgotPasswordView.vue";
+import ResetPasswordView from "../views/ResetPasswordView.vue";
 import CartView from "../views/CartView.vue";
 import WishListView from "../views/WishListView.vue";
 import SearchView from "../views/SearchView.vue";
@@ -67,6 +69,16 @@ const routes = [
     path: "/register",
     name: "Register",
     component: RegisterView,
+  },
+  {
+    path: "/forgot-password",
+    name: "ForgotPassword",
+    component: ForgotPasswordView,
+  },
+  {
+    path: "/reset-password/:token",
+    name: "ResetPassword",
+    component: ResetPasswordView,
   },
   {
     path: "/accept-invitation/:token",
