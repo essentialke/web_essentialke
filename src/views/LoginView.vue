@@ -112,7 +112,7 @@
                     </button>
                 </div>
             </form>
-            <div class="text-center mt-4">
+            <div v-if="!isAdminLogin" class="text-center mt-4">
                 <p class="text-sm">
                     Don't have an account?
                     <RouterLink
