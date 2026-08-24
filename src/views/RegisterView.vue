@@ -182,7 +182,6 @@ const handleRegister = async () => {
             name: name.value,
             email: email.value,
             password: password.value,
-            userType: "MEMBER",
         });
 
         // Handle successful registration

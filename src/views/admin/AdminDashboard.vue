@@ -11,12 +11,25 @@
                 :icon-color="stat.iconColor"
             />
         </div>
+
+        <div class="mt-8">
+            <HeroImageUploader />
+        </div>
+
+        <section class="mt-8" aria-labelledby="intasend-settings-heading">
+            <AdminPaymentSettings
+                heading-id="intasend-settings-heading"
+                :embedded="true"
+            />
+        </section>
     </div>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import StatCard from "../../components/admin/StatCard.vue";
+import HeroImageUploader from "../../components/admin/HeroImageUploader.vue";
+import AdminPaymentSettings from "./AdminPaymentSettings.vue";
 import axios from "axios";
 
 const stats = ref({
