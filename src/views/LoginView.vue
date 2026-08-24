@@ -76,12 +76,12 @@
                     </div>
 
                     <div class="text-sm">
-                        <a
-                            href="#"
+                        <RouterLink
+                            :to="isAdminLogin ? '/forgot-password?admin=1' : '/forgot-password'"
                             class="font-medium text-primary hover:text-secondary"
                         >
                             Forgot your password?
-                        </a>
+                        </RouterLink>
                     </div>
                 </div>
 
