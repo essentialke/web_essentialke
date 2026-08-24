@@ -15,7 +15,7 @@
                     Sign in to your account
                 </h2>
             </div>
-            <div class="space-y-4">
+            <div v-if="!isAdminLogin" class="space-y-4">
                 <GoogleSignInButton
                     @credential="handleGoogleLogin"
                     @error="handleGoogleError"
@@ -128,7 +128,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { RouterLink, useRouter } from "vue-router";
 import { useUserStore } from "../stores/user"; // Import the user store
 import { useWishlistStore } from "../stores/wishlist";
@@ -142,6 +142,10 @@ const router = useRouter();
 const userStore = useUserStore();
 const wishlistStore = useWishlistStore();
 const snackbarStore = useSnackbarStore();
+const isAdminLogin = computed(() => {
+    const redirectRoute = router.currentRoute.value.query.redirect;
+    return typeof redirectRoute === "string" && redirectRoute.startsWith("/admin");
+});
 
 const finishLogin = () => {
     wishlistStore.fetchWishlistItems();

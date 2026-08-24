@@ -203,8 +203,8 @@ async function saveUser(userData) {
             // Update existing user
             await axios.put(`/users/${editingUser.value.id}`, userData);
         } else {
-            // Create new user
-            await axios.post("/users/register", userData);
+            // Admin-only invitation flow is allowed to assign a role.
+            await axios.post("/users/invite", userData);
         }
         await fetchUsers(); // Refresh the user list
         closeModal();
