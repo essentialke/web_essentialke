@@ -52,7 +52,10 @@ axios.interceptors.request.use(
     if (token) {
       config.headers["Authorization"] = `Bearer ${token}`;
     }
-    config.headers["x-tenant-id"] = `1`;
+    const tenantId = import.meta.env.VITE_TENANT_ID;
+    if (tenantId) {
+      config.headers["x-tenant-id"] = tenantId;
+    }
     return config;
   },
   (error) => {
