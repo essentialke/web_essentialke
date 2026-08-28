@@ -2,12 +2,12 @@
     <transition-group
         name="snackbar-list"
         tag="div"
-        class="fixed bottom-4 right-4 z-50 space-y-2"
+        class="fixed bottom-3 left-3 right-3 sm:left-auto sm:bottom-4 sm:right-4 z-50 space-y-2"
     >
         <div
             v-for="snackbar in snackbarStore.snackbars"
             :key="snackbar.id"
-            class="snackbar-item flex flex-col w-80 max-w-full rounded-lg shadow-lg overflow-hidden"
+            class="snackbar-item flex flex-col w-full sm:w-80 max-w-full rounded-lg shadow-lg overflow-hidden"
             :class="getSnackbarClasses(snackbar)"
         >
             <div class="flex items-center justify-between px-4 py-3">

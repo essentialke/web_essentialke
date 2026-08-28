@@ -5,6 +5,7 @@
     >
         <!-- Image Container - Fixed aspect ratio -->
         <div class="relative overflow-hidden product-cover-container">
+            <span v-if="isOnSale" class="sale-badge">{{ discountPercent }}% off</span>
             <!-- Wishlist Button - Outside RouterLink -->
             <button
                 @click="handleAddToWishlist"
@@ -82,27 +83,24 @@
                     <div class="flex flex-col">
                         <span class="text-sm text-gray-500">Price</span>
                         <span
-                            class="text-sm font-bold text-primary font-display-serif"
+                            class="product-card-price text-sm font-bold text-primary font-display-serif"
                         >
-                            KES {{ product.price.toFixed(2) }}
+                            <del v-if="isOnSale">KES {{ Number(product.price).toFixed(2) }}</del>
+                            <b>KES {{ effectivePrice.toFixed(2) }}</b>
                         </span>
                     </div>
                     <button
-                        :disabled="product.quantityShop <= 0"
+                        :disabled="product.quantityShop <= 0 || isAdding"
                         @click="handleAddToCart"
-                        class="px-4 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-lg transition-all duration-200 hover:shadow-md flex items-center gap-2 text-sm font-medium"
+                        class="add-cart-button"
                         title="Add to Cart"
                         :class="{
-                            'opacity-50 cursor-not-allowed':
-                                product.quantityShop <= 0,
+                            'is-disabled': product.quantityShop <= 0,
+                            'is-added': added,
                         }"
                     >
-                        <font-awesome-icon :icon="['fas', 'cart-plus']" />
-                        <span>{{
-                            product.quantityShop > 0
-                                ? "Add to Cart"
-                                : "Out of Stock"
-                        }}</span>
+                        <font-awesome-icon :icon="['fas', added ? 'check' : 'cart-plus']" aria-hidden="true" />
+                        <span>{{ buttonLabel }}</span>
                     </button>
                 </div>
             </div>
@@ -117,12 +115,12 @@ import { useUserStore } from "../stores/user";
 import { useWishlistStore } from "../stores/wishlist";
 import { useSnackbarStore } from "../stores/snackbar";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faCartPlus, faHeart } from "@fortawesome/free-solid-svg-icons";
+import { faCartPlus, faCheck, faHeart } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { resolveAssetUrl } from "../utils/assetUrl";
 
-library.add(faCartPlus, faHeart);
+library.add(faCartPlus, faCheck, faHeart);
 
 const props = defineProps({
     product: {
@@ -141,6 +139,17 @@ const wishlistStore = useWishlistStore();
 const snackbarStore = useSnackbarStore();
 
 const imageUrl = computed(() => resolveAssetUrl(props.product.coverImageUrl));
+const isOnSale = computed(() => Number(props.product.salePrice) > 0 && Number(props.product.salePrice) < Number(props.product.price));
+const effectivePrice = computed(() => isOnSale.value ? Number(props.product.salePrice) : Number(props.product.price || 0));
+const discountPercent = computed(() => Math.round((1 - Number(props.product.salePrice) / Number(props.product.price)) * 100));
+const isAdding = ref(false);
+const added = ref(false);
+const buttonLabel = computed(() => {
+    if (props.product.quantityShop <= 0) return "Out of stock";
+    if (isAdding.value) return "Adding…";
+    if (added.value) return "Added";
+    return "Add to cart";
+});
 
 async function handleAddToCart() {
     if (!userStore.isAuthenticated) {
@@ -150,11 +159,15 @@ async function handleAddToCart() {
         });
         return;
     }
-    await cartStore.addToCart(props.product, 1);
-    snackbarStore.addSnackbar({
-        message: "Product added to cart successfully!",
-        type: "success",
-    });
+    isAdding.value = true;
+    try {
+        await cartStore.addToCart(props.product, 1);
+        added.value = true;
+        snackbarStore.addSnackbar({ message: "Product added to cart successfully!", type: "success" });
+        window.setTimeout(() => { added.value = false; }, 1800);
+    } finally {
+        isAdding.value = false;
+    }
 }
 
 async function handleAddToWishlist() {
@@ -255,4 +268,33 @@ async function handleAddToWishlist() {
 .product-card--compact .mt-auto {
     padding-top: 0.75rem;
 }
+.product-card-price del{display:block;color:#999189;font-size:.68rem;font-weight:400}.product-card-price b{display:block}.product-card-price:has(del) b{color:#9b633b}
+.sale-badge{position:absolute;z-index:9;left:12px;top:12px;padding:6px 9px;background:#8f543a;color:#fff;font:650 8px 'Geist',sans-serif;letter-spacing:.12em;text-transform:uppercase}
+
+.add-cart-button {
+    min-width: 9.25rem;
+    min-height: 2.9rem;
+    padding: 0.7rem 1rem;
+    border: 1px solid #1d1d1b;
+    border-radius: 0.55rem;
+    background: #1d1d1b;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    white-space: nowrap;
+    font-family: 'Geist', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 650;
+    letter-spacing: 0.035em;
+    box-shadow: 0 5px 14px rgba(29, 29, 27, 0.12);
+    transition: transform .2s ease, background-color .2s ease, color .2s ease, box-shadow .2s ease;
+}
+.add-cart-button:hover:not(:disabled) { background:#b08d57;border-color:#b08d57;box-shadow:0 8px 20px rgba(128,95,47,.22);transform:translateY(-1px) }
+.add-cart-button:focus-visible { outline:2px solid #b08d57;outline-offset:3px }
+.add-cart-button.is-added { background:#536646;border-color:#536646 }
+.add-cart-button.is-disabled { background:#dedbd5;border-color:#dedbd5;color:#77736c;box-shadow:none;cursor:not-allowed }
+.product-card--compact .add-cart-button { min-width:8.75rem;padding:.65rem .85rem;font-size:.75rem }
+@media(max-width:520px){.mt-auto>div{align-items:flex-end;gap:.65rem}.add-cart-button,.product-card--compact .add-cart-button{min-width:0;padding:.65rem .75rem}}
 </style>

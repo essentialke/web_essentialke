@@ -14,46 +14,31 @@ import ResetPasswordView from "../views/ResetPasswordView.vue";
 import CartView from "../views/CartView.vue";
 import WishListView from "../views/WishListView.vue";
 import SearchView from "../views/SearchView.vue";
-import GiftVoucherView from "../views/GiftVoucherView.vue";
+import GiftingView from "../views/GiftingView.vue";
 import Checkout from "../views/CheckoutView.vue";
-import BlogPosts from "../views/BlogPosts.vue";
-import BlogDetail from "../views/BlogDetail.vue";
-import AdminDynamicContent from "../views/admin/AdminDynamicContent.vue";
 
 import DashboardLayout from "../views/user/DashboardLayout.vue";
 import DashboardProfile from "../views/user/Profile.vue";
 import DashboardSettings from "../views/user/Settings.vue";
 import DashboardOrders from "../views/user/Orders.vue";
-import DashboardGiftVouchers from "../views/user/GiftVouchers.vue";
 import DynamicPageView from "../views/DynamicPageView.vue";
 import NotFoundView from "../views/NotFoundView.vue";
 
 import AdminLayout from "../views/admin/AdminLayout.vue";
 import AdminDashboard from "../views/admin/AdminDashboard.vue";
-import AdminUsers from "../views/admin/AdminUsers.vue";
 import AdminProducts from "../views/admin/AdminProducts.vue";
 import AdminTransactions from "@/views/admin/AdminTransactions.vue";
-import AdminGiftVouchers from "@/views/admin/AdminGiftVouchers.vue";
-import AdminGeneralPosts from "@/views/admin/AdminGeneralPosts.vue"; // Import AdminGeneralPosts
 import AdminReviews from "@/views/admin/AdminReviews.vue"; // Import AdminReviews - assuming you have this as well
-import AdminContentView from "@/views/admin/AdminContentView.vue";
 import AdminPaymentSettings from "@/views/admin/AdminPaymentSettings.vue";
+import AdminTestimonials from "@/views/admin/AdminTestimonials.vue";
+import AdminChangePasswordView from "@/views/admin/AdminChangePasswordView.vue";
+import AdminSubscribers from "@/views/admin/AdminSubscribers.vue";
 
 const routes = [
   {
     path: "/",
     name: "Home",
     component: HomeView,
-  },
-  {
-    path: "/blog",
-    name: "Blog",
-    component: BlogPosts,
-  },
-  {
-    path: "/blog/:id/:slug",
-    name: "BlogDetail",
-    component: BlogDetail,
   },
   {
     path: "/about",
@@ -103,9 +88,9 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
-    path: "/gift-voucher",
-    name: "Gift-Vouchers",
-    component: GiftVoucherView,
+    path: "/gifting",
+    name: "Gifting",
+    component: GiftingView,
   },
   {
     path: "/wishlist",
@@ -153,11 +138,6 @@ const routes = [
         component: DashboardProfile,
       },
       {
-        path: "gift-vouchers",
-        name: "GiftVouchers",
-        component: DashboardGiftVouchers,
-      },
-      {
         path: "settings",
         name: "DashboardSettings",
         component: DashboardSettings,
@@ -173,14 +153,7 @@ const routes = [
         path: "dashboard",
         component: AdminDashboard,
       },
-      {
-        path: "users",
-        component: AdminUsers,
-      },
-      {
-        path: "dynamic",
-        component: AdminDynamicContent,
-      },
+      { path: "subscribers", name: "AdminSubscribers", component: AdminSubscribers },
       {
         path: "products",
         component: AdminProducts,
@@ -190,29 +163,24 @@ const routes = [
         component: AdminTransactions,
       },
       {
-        path: "gift-vouchers",
-        component: AdminGiftVouchers,
-      },
-
-      {
-        path: "general-posts",
-        name: "AdminGeneralPosts",
-        component: AdminGeneralPosts,
-      },
-      {
         path: "reviews",
         name: "AdminReviews",
         component: AdminReviews,
       },
       {
-        path: "content",
-        name: "AdminContent",
-        component: AdminContentView,
+        path: "testimonials",
+        name: "AdminTestimonials",
+        component: AdminTestimonials,
       },
       {
         path: "payment-settings",
         name: "AdminPaymentSettings",
         component: AdminPaymentSettings,
+      },
+      {
+        path: "change-password",
+        name: "AdminChangePassword",
+        component: AdminChangePasswordView,
       },
       {
         path: "", // Redirect to Library by default - adjusted as per your previous config

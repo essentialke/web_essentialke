@@ -3,7 +3,7 @@
         <!-- Mobile menu button -->
         <button
             @click="toggleSidebar"
-            class="md:hidden fixed z-50 top-20 left-4 p-2 rounded-md bg-gray-800 text-white hover:bg-gray-700 shadow-lg"
+            class="md:hidden fixed z-50 top-[4.5rem] left-3 p-2 rounded-md bg-gray-800 text-white hover:bg-gray-700 shadow-lg"
             aria-label="Toggle Menu"
         >
             <svg
@@ -44,7 +44,7 @@
             <AdminHeader />
             <!-- Main Content -->
             <main
-                class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-4 md:p-6"
+                class="flex-1 min-w-0 overflow-x-hidden overflow-y-auto bg-gray-100 p-2 sm:p-4 md:p-6 pt-14 md:pt-6"
             >
                 <RouterView />
             </main>

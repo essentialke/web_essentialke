@@ -13,16 +13,16 @@ export const useCartStore = defineStore("cart", {
     },
     subtotal: (state) => {
       return state.cartItems.reduce(
-        (total, item) => total + item.quantity * (item.product?.price || 0),
+        (total, item) => total + item.quantity * (
+          Number(item.product?.salePrice) > 0 && Number(item.product?.salePrice) < Number(item.product?.price)
+            ? Number(item.product.salePrice)
+            : Number(item.product?.price || 0)
+        ),
         0,
       );
     },
-    // Placeholder for tax calculation (adjust as needed)
-    tax: (state) => {
-      return state.subtotal * 0.1; // Example: 10% tax
-    },
     total: (state) => {
-      return state.subtotal + state.tax;
+      return state.subtotal;
     },
   },
   actions: {

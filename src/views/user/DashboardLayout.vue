@@ -1,5 +1,5 @@
 <template>
-    <div class="flex h-screen bg-gray-50">
+    <div class="flex min-h-[calc(100dvh-4rem)] bg-gray-50">
         <!-- Sidebar -->
         <UserSidebar
             :isSidebarOpen="isSidebarOpen"
@@ -41,7 +41,7 @@
 
             <!-- Main Content -->
             <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
-                <div class="container mx-auto p-6">
+                <div class="container mx-auto p-3 sm:p-6">
                     <RouterView />
                 </div>
             </main>

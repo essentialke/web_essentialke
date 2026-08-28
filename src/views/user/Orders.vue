@@ -26,24 +26,6 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-lg shadow p-4 sm:p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-xs sm:text-sm font-medium text-gray-600">
-                            Vouchers Purchased
-                        </p>
-                        <p class="text-xl sm:text-2xl font-bold text-gray-900">
-                            {{ userStats._count?.purchasedVouchers || 0 }}
-                        </p>
-                    </div>
-                    <div class="p-2 sm:p-3 bg-green-50 rounded-full">
-                        <font-awesome-icon
-                            :icon="faTicketAlt"
-                            class="h-4 w-4 sm:h-6 sm:w-6 text-green-600"
-                        />
-                    </div>
-                </div>
-            </div>
 
             <div class="bg-white rounded-lg shadow p-4 sm:p-6">
                 <div class="flex items-center justify-between">
@@ -125,6 +107,12 @@
                                     {{
                                         formatDate(transaction.transactionDate)
                                     }}
+                                </p>
+                                <p v-if="transaction.shippingMethod" class="text-sm text-gray-500 mt-1">
+                                    Delivery: {{ transaction.shippingMethod }}
+                                </p>
+                                <p v-if="transaction.notes" class="text-sm text-gray-500 mt-1">
+                                    Note: {{ transaction.notes }}
                                 </p>
                                 <p
                                     class="text-base sm:text-lg font-medium text-gray-900 mt-1"
@@ -231,7 +219,6 @@ import { useUserStore } from "../../stores/user";
 import axios from "axios";
 import {
     faReceipt,
-    faTicketAlt,
     faHeart,
     faPen,
 } from "@fortawesome/free-solid-svg-icons";
@@ -280,15 +267,8 @@ async function fetchUserStats() {
 async function fetchUserOrders() {
     if (!userStore.user?.userId) return;
     try {
-        const response = await axios.get(
-            `/transactions/user/${userStore.user.userId}`,
-        );
-        orders.value = response.data
-            .filter((t) => t.type?.toLowerCase() === "purchase")
-            .sort(
-                (a, b) =>
-                    new Date(b.transactionDate) - new Date(a.transactionDate),
-            );
+        const response = await axios.get("/transactions/mine");
+        orders.value = response.data;
         console.log("Purchase orders found:", orders.value.length);
     } catch (error) {
         console.error("Error fetching user orders:", error);

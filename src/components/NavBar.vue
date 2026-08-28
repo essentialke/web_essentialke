@@ -25,8 +25,8 @@ const nav = [
     { name: "Best Sellers", path: "/products?featured=true" },
     { name: "Collections", path: "/products", dropdown: true },
     { name: "Stickers", path: "/products?category=Stickers" },
-    { name: "Gifting", path: "/gift-voucher" },
-    { name: "Sale", path: "/products?sortBy=sale" },
+    { name: "Gifting", path: "/gifting" },
+    { name: "Sale", path: "/products?onSale=true" },
 ];
 
 const collections = ref(collectionCategories(copyDefaultCategories()));
@@ -151,5 +151,5 @@ router.afterEach(closeMenus);
 .header-main{height:82px;display:grid;grid-template-columns:110px minmax(0,1fr) 150px;align-items:center}.desktop-nav{height:100%;align-items:center;gap:clamp(18px,2.3vw,40px)}.desktop-nav>a,.desktop-nav .dropdown-trigger{font-size:10px;letter-spacing:.14em;white-space:nowrap}.nav-dropdown{height:100%;padding:0;display:flex;align-items:center}.dropdown-panel{top:calc(100% - 1px)}
 .dropdown-trigger{display:inline-flex;align-items:center;line-height:1}.dropdown-trigger span{display:block;width:6px;height:6px;margin:0 0 3px 1px;border-right:1px solid currentColor;border-bottom:1px solid currentColor;transform:rotate(45deg);transform-origin:center;flex:0 0 auto}
 @media(max-width:1000px){.header-main{padding:0 24px;grid-template-columns:90px minmax(0,1fr) 130px}.desktop-nav{gap:16px}.desktop-nav>a,.desktop-nav .dropdown-trigger{font-size:9px;letter-spacing:.09em}.header-icons{gap:13px}}
-@media(max-width:800px){.header-main{height:64px;display:flex;padding:0 18px}.desktop-nav{display:none}}
+@media(max-width:800px){.header-main{height:64px;display:flex;padding:0 14px}.desktop-nav{display:none}.header-icons{gap:6px}.header-icons>a,.header-icons>button{width:42px;height:42px}.mobile-nav{padding:28px 22px 40px;gap:20px}.mobile-nav>a,.mobile-collections button{font-size:26px;line-height:1.2}.search-drawer{padding:14px;gap:8px}.search-drawer input{width:100%;min-width:0;font-size:18px}.search-drawer button{padding:0 16px;min-height:44px}}
 </style>

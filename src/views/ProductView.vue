@@ -19,6 +19,7 @@ const selectedAuthor = ref("");
 const selectedSortBy = ref("");
 const selectedSortOrder = ref("asc");
 const isMobileFilterOpen = ref(false);
+const onSale = ref(false);
 
 // Replace hardcoded categories with a dynamic ref
 const categories = ref([]);
@@ -32,6 +33,7 @@ const hasActiveFilters = computed(() => {
         selectedAuthor.value ||
         selectedSortBy.value ||
         selectedSortOrder.value !== "asc"
+        || onSale.value
     );
 });
 
@@ -89,6 +91,7 @@ onMounted(async () => {
     selectedCategory.value = route.query.category?.toString() || "";
     selectedSortBy.value = route.query.sortBy?.toString() || "";
     selectedSortOrder.value = route.query.sortOrder?.toString() || "asc";
+    onSale.value = route.query.onSale === "true";
     await fetchCategories();
     await loadProducts();
 
@@ -149,6 +152,7 @@ async function loadProducts() {
                 sortBy: selectedSortBy.value,
                 sortOrder: selectedSortOrder.value,
                 minQuantityShop: 0,
+                onSale: onSale.value || undefined,
             },
         });
         products.value = response.data.products;
@@ -174,6 +178,7 @@ function resetFilters() {
     selectedAuthor.value = "";
     selectedSortBy.value = "";
     selectedSortOrder.value = "asc";
+    onSale.value = false;
     currentPage.value = 1;
     loadProducts();
     closeMobileFilter();
@@ -221,6 +226,7 @@ watch(
         selectedCategory.value = query.category?.toString() || "";
         selectedSortBy.value = query.sortBy?.toString() || "";
         selectedSortOrder.value = query.sortOrder?.toString() || "asc";
+        onSale.value = query.onSale === "true";
         currentPage.value = 1;
         await loadProducts();
     },
@@ -228,17 +234,17 @@ watch(
 </script>
 
 <template>
-    <div class="min-h-screen bg-gray-50 py-8 md:py-12">
+    <div class="min-h-screen bg-white py-6 sm:py-8 md:py-12">
         <div class="container mx-auto px-4 max-w-7xl">
             <!-- Header Section -->
             <h1
-                class="text-3xl md:text-4xl font-bold text-gray-900 mb-6 md:mb-8 tracking-tight"
+                class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-5 md:mb-8 tracking-tight"
             >
-                Explore Products For Sale
+                Explore jewelry
                 <span
                     class="block text-base md:text-lg font-normal text-gray-600 mt-2"
                 >
-                    Discover your next favorite read
+                    Find a piece made to stay with you
                 </span>
             </h1>
 
@@ -280,14 +286,14 @@ watch(
                         'transform translate-x-0': isMobileFilterOpen,
                         'transform -translate-x-full': !isMobileFilterOpen,
                     }"
-                    class="lg:w-64 flex-shrink-0 fixed lg:sticky lg:transform-none lg:translate-x-0 top-0 lg:top-24 left-0 h-full lg:h-auto z-40 bg-gray-50 lg:bg-transparent transition-transform duration-300 ease-in-out"
+                    class="w-[min(88vw,360px)] lg:w-64 flex-shrink-0 fixed lg:sticky lg:transform-none lg:translate-x-0 top-16 lg:top-24 left-0 h-[calc(100dvh-4rem)] lg:h-auto z-40 bg-gray-50 lg:bg-transparent transition-transform duration-300 ease-in-out"
                 >
                     <div
                         class="bg-white p-6 rounded-xl shadow-sm h-full lg:h-auto overflow-y-auto"
                     >
                         <!-- Close button for mobile -->
                         <div
-                            class="flex justify-between items-center mb-6 lg:hidden pt-14"
+                            class="flex justify-between items-center mb-6 lg:hidden"
                         >
                             <h2 class="text-lg font-semibold text-gray-900">
                                 Filters
@@ -683,7 +689,7 @@ watch(
 
                     <!-- Product Grid -->
                     <div
-                        class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5"
+                        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6"
                     >
                         <ProductCard
                             v-for="product in products"

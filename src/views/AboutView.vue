@@ -1,5 +1,5 @@
 <template>
-    <div class="container mx-auto px-4 py-12">
+    <div class="container mx-auto px-4 py-8 sm:py-12">
         <div v-if="loading" class="animate-pulse">
             <div class="h-12 bg-gray-200 rounded w-1/3 mb-8"></div>
             <div class="space-y-4">
@@ -37,7 +37,7 @@
 
             <!-- Page Title -->
             <h1
-                class="text-4xl font-display-serif font-bold mb-8 text-gray-800"
+                class="text-3xl sm:text-4xl font-display-serif font-bold mb-6 sm:mb-8 text-gray-800"
             >
                 {{ pageContent.title }}
             </h1>

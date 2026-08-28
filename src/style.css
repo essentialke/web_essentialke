@@ -4,14 +4,28 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color: #1a1a1a; background: #f7f3ed; font-family: 'Geist', Arial, sans-serif; font-synthesis: none; --font-display: 'GFS Didot', Georgia, serif; --font-body: 'Geist', Arial, sans-serif; }
+:root { color: #1a1a1a; background: #fff; font-family: 'Geist', Arial, sans-serif; font-synthesis: none; --font-display: 'GFS Didot', Georgia, serif; --font-body: 'Geist', Arial, sans-serif; }
 html { scroll-behavior: smooth; }
-body { margin: 0; min-width: 320px; background: #f7f3ed; font-size: 15px; line-height: 1.6; font-weight: 400; }
+body { margin: 0; min-width: 320px; background: #fff; font-size: 15px; line-height: 1.6; font-weight: 400; }
 *, *::before, *::after { box-sizing: border-box; }
 a { color: inherit; text-decoration: none; }
 button, input { font: inherit; }
 button { cursor: pointer; border: 0; background: none; }
+img { max-width: 100%; }
+input, select, textarea { max-width: 100%; }
 h1, h2, h3 { text-wrap: balance; }
 p { text-wrap: pretty; }
 ::selection { background: #c9a45c; color: #1a1a1a; }
-#app { min-height: 100vh; display: flex; flex-direction: column; }
+#app { min-height: 100vh; display: flex; flex-direction: column; background: #fff; }
+
+@media (max-width: 640px) {
+  html { scroll-padding-top: 72px; }
+  body { min-width: 0; overflow-x: hidden; font-size: 15px; }
+  input, select, textarea { font-size: 16px !important; }
+  button, a { -webkit-tap-highlight-color: transparent; }
+  button:not([aria-label]), input[type="submit"], input[type="button"] { min-height: 44px; }
+  .container { width: 100%; }
+  .prose { font-size: 1rem !important; line-height: 1.75 !important; overflow-wrap: anywhere; }
+  .prose img, .prose video, .prose iframe { max-width: 100%; height: auto; }
+  table { display: block; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}

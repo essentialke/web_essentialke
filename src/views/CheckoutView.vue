@@ -1,12 +1,18 @@
 <template>
-    <div class="container mx-auto p-4">
-        <h1 class="text-3xl font-bold mb-4">Checkout</h1>
+    <div class="checkout-page container mx-auto px-3 sm:px-4 py-7 sm:py-10">
+        <header class="checkout-header">
+            <p class="checkout-kicker">Secure checkout</p>
+            <h1>Complete your order</h1>
+            <div class="checkout-steps" aria-label="Checkout progress">
+                <span class="complete">1 <b>Cart</b></span><i></i><span class="active">2 <b>Delivery</b></span><i></i><span>3 <b>Payment</b></span>
+            </div>
+        </header>
 
         <div v-if="!showPaymentStatus">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 <!-- Order Summary -->
-                <div class="bg-white shadow rounded-lg p-6">
-                    <h2 class="text-xl font-semibold mb-4">Order Summary</h2>
+                <aside class="order-summary order-2 lg:col-span-5 lg:order-2">
+                    <div class="summary-heading"><div><p>Your bag</p><h2>Order summary</h2></div><span>{{ cartStore.cartItemCount }} item{{ cartStore.cartItemCount === 1 ? '' : 's' }}</span></div>
                     <div v-if="cartStore.cartItems.length === 0">
                         <p class="text-gray-600">Your cart is empty.</p>
                     </div>
@@ -23,14 +29,14 @@
                                     </h4>
                                     <p class="text-gray-600 text-sm">
                                         Qty: {{ item.quantity }} x KES
-                                        {{ item.product.price.toFixed(2) }}
+                                        {{ Number(item.product.salePrice && item.product.salePrice < item.product.price ? item.product.salePrice : item.product.price).toFixed(2) }}
                                     </p>
                                 </div>
                                 <span class="font-semibold">
                                     KES
                                     {{
                                         (
-                                            item.quantity * item.product.price
+                                            item.quantity * (item.product.salePrice && item.product.salePrice < item.product.price ? item.product.salePrice : item.product.price)
                                         ).toFixed(2)
                                     }}
                                 </span>
@@ -43,13 +49,6 @@
                                 KES {{ cartStore.subtotal.toFixed(2) }}
                             </span>
                         </div>
-                        <div class="flex justify-between mb-2">
-                            <span class="text-gray-600">Tax (VAT)</span>
-                            <span class="font-semibold">
-                                KES {{ cartStore.tax.toFixed(2) }}
-                            </span>
-                        </div>
-
                         <div
                             class="flex justify-between mb-2"
                             v-if="appliedDiscount"
@@ -60,16 +59,9 @@
                             </span>
                         </div>
 
-                        <div
-                            class="flex justify-between mb-2"
-                            v-if="appliedGiftVoucherAmount"
-                        >
-                            <span class="text-gray-600"
-                                >Gift Voucher Applied</span
-                            >
-                            <span class="font-semibold text-green-600">
-                                -KES {{ appliedGiftVoucherAmount.toFixed(2) }}
-                            </span>
+                        <div v-if="selectedDelivery" class="flex justify-between mb-2">
+                            <span class="text-gray-600">Delivery</span>
+                            <span class="font-semibold">KES {{ selectedDelivery.fee.toFixed(2) }}</span>
                         </div>
 
                         <hr class="my-2" />
@@ -79,20 +71,16 @@
                             >
                             <span class="text-lg font-semibold">
                                 KES
-                                {{
-                                    (
-                                        finalTotal - appliedGiftVoucherAmount
-                                    ).toFixed(2)
-                                }}
+                                {{ finalTotal.toFixed(2) }}
                             </span>
                         </div>
                     </div>
-                </div>
+                </aside>
 
                 <!-- Shipping and Billing Details -->
-                <div class="bg-white shadow rounded-lg p-6">
-                    <h2 class="text-xl font-semibold mb-4">Shipping Details</h2>
-                    <form @submit.prevent="placeOrder" class="space-y-6">
+                <section class="delivery-panel order-1 lg:col-span-7 lg:order-1">
+                    <div class="panel-heading"><span>01</span><div><h2>Delivery details</h2><p>Choose a destination, then tell us where to deliver.</p></div></div>
+                    <form @submit.prevent="placeOrder" class="space-y-6 checkout-form">
                         <!-- Shipping Address Form -->
                         <div>
                             <label
@@ -109,64 +97,26 @@
                             />
                         </div>
 
-                        <div>
-                            <label
-                                for="shippingAddress"
-                                class="block text-sm font-medium text-gray-700"
-                                >Address</label
-                            >
-                            <input
-                                type="text"
-                                id="shippingAddress"
-                                v-model="shippingDetails.address"
-                                required
-                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            />
-                        </div>
+                        <fieldset>
+                            <legend class="block text-sm font-medium text-gray-700">Delivery destination / point</legend>
+                            <div class="delivery-options">
+                                <label v-for="option in deliveryOptions" :key="option.id" class="delivery-option" :class="{ selected: shippingDetails.deliveryDestination === option.id }">
+                                    <input v-model="shippingDetails.deliveryDestination" type="radio" name="deliveryDestination" :value="option.id" required />
+                                    <span><b>{{ option.label }}</b><small>Standard delivery</small></span><strong>KES {{ option.fee }}</strong>
+                                </label>
+                            </div>
+                        </fieldset>
 
                         <div>
-                            <label
-                                for="shippingCity"
-                                class="block text-sm font-medium text-gray-700"
-                                >City</label
-                            >
-                            <input
-                                type="text"
-                                id="shippingCity"
-                                v-model="shippingDetails.city"
-                                required
-                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            />
-                        </div>
-
-                        <div>
-                            <label
-                                for="shippingZip"
-                                class="block text-sm font-medium text-gray-700"
-                                >ZIP Code</label
-                            >
-                            <input
-                                type="text"
-                                id="shippingZip"
-                                v-model="shippingDetails.zip"
-                                required
-                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            />
-                        </div>
-
-                        <div>
-                            <label
-                                for="shippingCountry"
-                                class="block text-sm font-medium text-gray-700"
-                                >Country</label
-                            >
-                            <select
-                                id="shippingCountry"
-                                v-model="shippingDetails.country"
-                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            >
-                                <option value="Kenya">Kenya</option>
-                            </select>
+                            <label for="deliveryNote" class="block text-sm font-medium text-gray-700">Delivery notes <span class="text-gray-400">(optional)</span></label>
+                            <textarea
+                                id="deliveryNote"
+                                v-model.trim="shippingDetails.deliveryNote"
+                                rows="3"
+                                maxlength="500"
+                                placeholder="Add a landmark, pickup instructions, or any details that will help with delivery."
+                                class="mt-1 block w-full border border-gray-300 py-3 px-3 focus:outline-none sm:text-sm"
+                            ></textarea>
                         </div>
 
                         <div>
@@ -241,60 +191,24 @@
                             </div>
                         </div> -->
 
-                        <!-- Gift Voucher Code -->
-                        <!-- <div>
-                            <label
-                                for="giftVoucherCode"
-                                class="block text-sm font-medium text-gray-700"
-                                >Gift Voucher Code</label
-                            >
-                            <div class="mt-1 flex rounded-md shadow-sm">
-                                <input
-                                    type="text"
-                                    id="giftVoucherCode"
-                                    v-model="giftVoucherCode"
-                                    class="flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-l-md sm:text-sm border-gray-300"
-                                    placeholder="Enter gift voucher code"
-                                />
-                                <button
-                                    @click.prevent="redeemGiftVoucher"
-                                    :disabled="isRedeemingGiftVoucher"
-                                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-r-md font-semibold text-xs text-white uppercase tracking-widest bg-gray-800 hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition"
-                                >
-                                    Redeem
-                                </button>
-                            </div>
-                            <div
-                                v-if="giftVoucherError"
-                                class="text-red-600 text-sm mt-1"
-                            >
-                                {{ giftVoucherError }}
-                            </div>
-                            <div
-                                v-if="giftVoucherMessage"
-                                class="text-green-600 text-sm mt-1"
-                            >
-                                {{ giftVoucherMessage }}
-                            </div>
-                        </div> -->
-
                         <!-- Place Order Button -->
                         <button
                             type="submit"
                             :disabled="
                                 isPlacingOrder ||
-                                cartStore.cartItems.length === 0
+                                cartStore.cartItems.length === 0 || !isFormValid
                             "
                             class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
                         >
                             {{
                                 isPlacingOrder
                                     ? "Placing Order..."
-                                    : "Place Order"
+                                    : `Pay KES ${payableTotal.toFixed(2)}`
                             }}
                         </button>
                     </form>
-                </div>
+                    <p class="secure-note">🔒 Your payment is securely processed. We never store your M-Pesa PIN.</p>
+                </section>
             </div>
         </div>
 
@@ -463,7 +377,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, watch } from "vue";
+import { ref, onMounted, onUnmounted, computed } from "vue";
 import { useCartStore } from "../stores/cart";
 import { useUserStore } from "../stores/user";
 import { useRouter } from "vue-router";
@@ -478,24 +392,28 @@ const snackbarStore = useSnackbarStore();
 // Form data and state
 const shippingDetails = ref({
     name: "",
-    address: "",
-    city: "",
-    zip: "",
-    country: "Kenya",
     phoneNumber: "",
+    deliveryDestination: "",
+    deliveryNote: "",
 });
 
+const deliveryOptions = [
+    { id: "mombasa-nairobi-service-area", label: "Mombasa → Nairobi CBD, Westlands, Parklands, Kilimani, South C & South B", fee: 350, country: "Kenya" },
+    { id: "nairobi-kilimani-kileleshwa", label: "Nairobi → Kilimani & Kileleshwa", fee: 250, country: "Kenya" },
+    { id: "ngong-road", label: "Ngong Road", fee: 200, country: "Kenya" },
+    { id: "nairobi-cbd", label: "Nairobi CBD", fee: 450, country: "Kenya" },
+    { id: "malindi-lamu", label: "Malindi & Lamu", fee: 300, country: "Kenya" },
+    { id: "dar-es-salaam", label: "Dar es Salaam", fee: 400, country: "Tanzania" },
+    { id: "kampala", label: "Kampala", fee: 600, country: "Uganda" },
+];
+const selectedDelivery = computed(() => deliveryOptions.find((option) => option.id === shippingDetails.value.deliveryDestination) || null);
+
 const discountCode = ref("");
-const giftVoucherCode = ref("");
 const isApplyingDiscount = ref(false);
-const isRedeemingGiftVoucher = ref(false);
 const isPlacingOrder = ref(false);
 const discountError = ref("");
 const discountMessage = ref("");
-const giftVoucherError = ref("");
-const giftVoucherMessage = ref("");
 const appliedDiscount = ref(0);
-const appliedGiftVoucherAmount = ref(0);
 
 // Payment status tracking
 const showPaymentStatus = ref(false);
@@ -509,8 +427,9 @@ let statusCheckInterval = null;
 
 // Computed property for final total
 const finalTotal = computed(() => {
-    return cartStore.total - appliedDiscount.value + cartStore.tax;
+    return cartStore.total - appliedDiscount.value + (selectedDelivery.value?.fee || 0);
 });
+const payableTotal = computed(() => Math.max(0, finalTotal.value));
 
 // Lifecycle hooks
 onMounted(() => {
@@ -548,45 +467,17 @@ const applyDiscountCode = async () => {
     }
 };
 
-const redeemGiftVoucher = async () => {
-    isRedeemingGiftVoucher.value = true;
-    giftVoucherError.value = "";
-    giftVoucherMessage.value = "";
-
-    try {
-        const response = await axios.get(
-            `/api/gift-vouchers/${giftVoucherCode.value}`,
-        );
-
-        if (response.data.success) {
-            const voucher = response.data.data;
-
-            if (voucher.status !== "active") {
-                giftVoucherError.value =
-                    "This voucher has already been used or is invalid.";
-                return;
-            }
-
-            appliedGiftVoucherAmount.value = voucher.amount;
-            giftVoucherMessage.value = `Gift voucher worth KES ${voucher.amount.toFixed(
-                2,
-            )} applied successfully!`;
-        }
-    } catch (error) {
-        console.error("Error redeeming gift voucher:", error);
-        giftVoucherError.value =
-            error.response?.data?.error || "Invalid gift voucher code.";
-    } finally {
-        isRedeemingGiftVoucher.value = false;
-    }
-};
-
 const placeOrder = async () => {
     if (cartStore.cartItems.length === 0) {
         snackbarStore.addSnackbar({
             message: "Your cart is empty!",
             type: "warning",
         });
+        return;
+    }
+
+    if (!selectedDelivery.value) {
+        snackbarStore.addSnackbar({ message: "Please select a delivery destination.", type: "warning" });
         return;
     }
 
@@ -615,12 +506,14 @@ const placeOrder = async () => {
             : shippingDetails.value.phoneNumber;
 
         const orderData = {
-            shippingAddress: `${shippingDetails.value.address}, ${shippingDetails.value.city}, ${shippingDetails.value.zip}, ${shippingDetails.value.country}`,
-            billingAddress: shippingDetails.value.address,
-            shippingMethod: "Standard",
+            shippingAddress: shippingDetails.value.deliveryNote
+                ? `${selectedDelivery.value.label} — ${shippingDetails.value.deliveryNote}`
+                : selectedDelivery.value.label,
+            billingAddress: selectedDelivery.value.label,
+            shippingMethod: selectedDelivery.value.label,
+            deliveryDestination: shippingDetails.value.deliveryDestination,
             discountCode: discountCode.value || null,
-            giftVoucherCode: giftVoucherCode.value || null,
-            notes: "",
+            notes: shippingDetails.value.deliveryNote,
             phoneNumber,
         };
 
@@ -641,9 +534,7 @@ const placeOrder = async () => {
 
             // Reset form values
             appliedDiscount.value = 0;
-            appliedGiftVoucherAmount.value = 0;
             discountCode.value = "";
-            giftVoucherCode.value = "";
 
             // Clear cart
             cartStore.clearCart();
@@ -779,7 +670,13 @@ const isPhoneNumberValid = computed(() => {
 });
 
 const isFormValid = computed(() => {
-    return isPhoneNumberValid.value && shippingDetails.value.phoneNumber !== "";
+    const details = shippingDetails.value;
+    return Boolean(
+        details.name.trim() &&
+        details.deliveryDestination &&
+        details.phoneNumber &&
+        isPhoneNumberValid.value
+    );
 });
 
 // Clean up on component unmount
@@ -789,3 +686,9 @@ onUnmounted(() => {
     }
 });
 </script>
+
+<style scoped>
+.checkout-page{max-width:1280px}.checkout-header{margin:0 auto 48px;text-align:center}.checkout-kicker{margin-bottom:9px;color:#9a7c50;font-size:9px;font-weight:650;letter-spacing:.25em;text-transform:uppercase}.checkout-header h1{font-family:'GFS Didot',Georgia,serif;font-size:clamp(38px,5vw,58px);font-weight:400;line-height:1}.checkout-steps{display:flex;align-items:center;justify-content:center;max-width:470px;margin:28px auto 0;color:#9a948c}.checkout-steps span{display:flex;align-items:center;gap:8px;font-size:11px}.checkout-steps span:first-letter{font-weight:700}.checkout-steps b{font-size:9px;letter-spacing:.13em;text-transform:uppercase}.checkout-steps i{width:72px;height:1px;margin:0 14px;background:#ddd4c7}.checkout-steps .complete,.checkout-steps .active{color:#8d7047}.checkout-steps .active{font-weight:700}.order-summary,.delivery-panel{border:1px solid #e7e0d6;background:#fff;box-shadow:0 14px 36px rgba(53,44,34,.07)}.order-summary{position:sticky;top:128px;padding:30px}.delivery-panel{padding:clamp(24px,4vw,42px)}.summary-heading,.panel-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:28px}.summary-heading p{color:#9a7c50;font-size:8px;font-weight:600;letter-spacing:.2em;text-transform:uppercase}.summary-heading h2,.panel-heading h2{font-family:'GFS Didot',Georgia,serif;font-size:28px;font-weight:400}.summary-heading>span{padding:6px 9px;background:#f7f3ed;color:#665f56;font-size:9px;letter-spacing:.1em;text-transform:uppercase}.panel-heading{justify-content:flex-start}.panel-heading>span{display:grid;width:40px;height:40px;flex:0 0 auto;place-items:center;border:1px solid #b08d57;border-radius:50%;color:#8d7047;font-size:10px}.panel-heading p{color:#777;font-size:12px}.checkout-form input:not([type=radio]),.checkout-form select{min-height:46px;border-color:#ddd4c7;border-radius:0;background:#fff;box-shadow:none}.checkout-form input:focus,.checkout-form select:focus{border-color:#a88654;box-shadow:0 0 0 1px #a88654}.delivery-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:9px}.delivery-option{display:flex;min-height:82px;align-items:center;gap:11px;padding:14px;border:1px solid #ddd4c7;background:#fff;cursor:pointer;transition:.2s}.delivery-option:hover,.delivery-option.selected{border-color:#a88654;background:#faf7f2;box-shadow:0 6px 16px rgba(53,44,34,.06)}.delivery-option input{accent-color:#9a7c50}.delivery-option span{min-width:0;flex:1}.delivery-option b,.delivery-option small{display:block}.delivery-option b{font-family:Georgia,serif;font-size:12px;font-weight:500;line-height:1.35}.delivery-option small{margin-top:4px;color:#8a847c;font-size:9px;letter-spacing:.08em;text-transform:uppercase}.delivery-option strong{white-space:nowrap;color:#7f633d;font-size:11px}.checkout-form button[type=submit]{min-height:52px;border-radius:0;background:#1f1f1c;font-size:10px;font-weight:650;letter-spacing:.16em;text-transform:uppercase;transition:.25s}.checkout-form button[type=submit]:hover{background:#9a7c50}.secure-note{margin-top:16px;text-align:center;color:#777;font-size:10px}.order-summary li{padding-bottom:14px;border-bottom:1px solid #eee9e2}.order-summary li:last-child{border-bottom:0}@media(max-width:1023px){.order-summary{position:static}}@media(max-width:640px){.checkout-page{padding-top:28px}.checkout-header{margin-bottom:32px}.checkout-steps b{display:none}.checkout-steps i{width:42px}.delivery-options{grid-template-columns:1fr}.order-summary,.delivery-panel{padding:22px}.panel-heading{align-items:flex-start}}
+.checkout-form button[type=submit]{display:flex;min-height:54px;align-items:center;justify-content:center;padding:0 24px;border-radius:0;background:#1f1f1c;font-size:12px;font-weight:800;line-height:1;letter-spacing:.12em;text-transform:uppercase;transition:.25s}
+@media(max-width:640px){.checkout-page{padding-top:22px}.checkout-header{margin-bottom:26px}.checkout-header h1{font-size:38px}.checkout-steps{margin-top:20px}.checkout-steps i{width:36px;margin-inline:10px}.order-summary,.delivery-panel{padding:18px}.panel-heading{margin-bottom:22px}.order-summary li{align-items:flex-start;gap:12px}.order-summary li>div{min-width:0}.order-summary li h4{line-height:1.35}.order-summary li>span{text-align:right;white-space:nowrap;font-size:13px}}
+</style>
