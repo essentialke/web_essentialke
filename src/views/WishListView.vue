@@ -1,6 +1,6 @@
 <template>
     <div class="container mx-auto p-4">
-        <h1 class="text-3xl font-bold mb-6">My Wishlist</h1>
+        <h1 class="text-2xl sm:text-3xl font-bold mb-6">My Wishlist</h1>
 
         <div
             v-if="wishlistStore.wishlistItems.length === 0"

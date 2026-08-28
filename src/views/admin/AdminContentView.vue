@@ -1,295 +1,73 @@
+<script setup>
+import { onMounted, ref, watch } from "vue";
+import axios from "axios";
+import { copyDefaultCategories } from "../../config/catalog";
+import { DEFAULT_STOREFRONT_CONTENT, normalizeStorefrontContent } from "../../config/storefront";
+import GuardedHeroForm from "../../components/admin/GuardedHeroForm.vue";
+import ContentFooterForm from "../../components/admin/ContentFooterForm.vue";
+import ContentCategoryForm from "../../components/admin/ContentCategoryForm.vue";
+import StorefrontContentForm from "../../components/admin/StorefrontContentForm.vue";
+import HeroSection from "../../components/sections/HeroSection.vue";
+import Footer from "../../components/Footer.vue";
+
+const tabs = [
+    { id: "hero", label: "Hero" }, { id: "quickNav", label: "Quick Nav" },
+    { id: "collections", label: "Collections" }, { id: "headings", label: "Headings" },
+    { id: "gifting", label: "Gifting" }, { id: "layout", label: "Order & Visibility" },
+    { id: "footer", label: "Footer" }, { id: "categories", label: "Category Catalog" },
+];
+const activeTab = ref("hero");
+const loading = ref(true);
+const hero = ref(null);
+const footer = ref(null);
+const categories = ref(copyDefaultCategories());
+const storefront = ref(normalizeStorefrontContent(DEFAULT_STOREFRONT_CONTENT));
+const notice = ref("");
+
+const getContent = async (section, fallback) => {
+    try { return (await axios.get(`/contents/${section}`)).data.content; }
+    catch (error) { if (error.response?.status === 404) return fallback; throw error; }
+};
+const load = async () => {
+    loading.value = true;
+    try {
+        const [heroValue, footerValue, categoryValue, storefrontValue] = await Promise.all([
+            getContent("hero", null), getContent("footer", null),
+            getContent("categories", { categories: copyDefaultCategories() }),
+            getContent("storefront", DEFAULT_STOREFRONT_CONTENT),
+        ]);
+        hero.value = heroValue; footer.value = footerValue;
+        categories.value = categoryValue?.categories || copyDefaultCategories();
+        storefront.value = normalizeStorefrontContent(storefrontValue);
+    } finally { loading.value = false; }
+};
+const saved = (section, response) => {
+    if (section === "hero") hero.value = response.content;
+    if (section === "footer") footer.value = response.content;
+    if (section === "categories") categories.value = response.content.categories;
+    if (section === "storefront") storefront.value = normalizeStorefrontContent(response.content);
+    notice.value = "Changes saved.";
+    window.setTimeout(() => { notice.value = ""; }, 2500);
+};
+watch(activeTab, () => { notice.value = ""; });
+onMounted(load);
+</script>
+
 <template>
-    <div class="container mx-auto px-4 py-8">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold">Website Configuration</h2>
-        </div>
-
-        <!-- Section Tabs -->
-        <div class="border-b border-gray-200 mb-6">
-            <nav class="flex -mb-px">
-                <button
-                    @click="currentSection = 'hero'"
-                    class="py-2 px-4 font-medium text-sm border-b-2 transition-colors duration-200"
-                    :class="
-                        currentSection === 'hero'
-                            ? 'border-primary text-primary'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    "
-                >
-                    Hero Section
-                </button>
-                <button
-                    @click="currentSection = 'footer'"
-                    class="py-2 px-4 font-medium text-sm border-b-2 transition-colors duration-200"
-                    :class="
-                        currentSection === 'footer'
-                            ? 'border-primary text-primary'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    "
-                >
-                    Footer
-                </button>
-                <button
-                    @click="currentSection = 'categories'"
-                    class="py-2 px-4 font-medium text-sm border-b-2 transition-colors duration-200"
-                    :class="
-                        currentSection === 'categories'
-                            ? 'border-primary text-primary'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    "
-                >
-                    Categories
-                </button>
-            </nav>
-        </div>
-
-        <div v-if="loading" class="flex justify-center my-8">
-            <div
-                class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"
-            ></div>
-        </div>
-
+    <div class="container mx-auto px-2 sm:px-4 py-5 sm:py-8">
+        <div class="mb-6"><h1 class="text-2xl font-bold text-gray-900">Storefront</h1><p class="mt-1 text-sm text-gray-500">Manage homepage merchandising and copy within layout-safe limits.</p></div>
+        <nav class="tabs" aria-label="Storefront sections"><button v-for="tab in tabs" :key="tab.id" type="button" :class="{ active: activeTab === tab.id }" @click="activeTab = tab.id">{{ tab.label }}</button></nav>
+        <div v-if="loading" class="py-16 text-center text-gray-500">Loading storefront content…</div>
         <template v-else>
-            <!-- Preview Section (only for visual sections, not for categories) -->
-            <div
-                v-if="currentSection !== 'categories'"
-                class="bg-gray-50 p-6 rounded-lg shadow-sm mb-8"
-            >
-                <h3 class="text-lg font-semibold mb-4">Preview</h3>
-
-                <!-- Using actual components for preview -->
-                <div
-                    class="bg-white rounded-lg overflow-auto shadow max-h-[400px]"
-                >
-                    <!-- Hero Preview -->
-                    <div
-                        v-if="currentSection === 'hero'"
-                        class="preview-container"
-                    >
-                        <HeroSection :content="content" />
-                    </div>
-
-                    <!-- Footer Preview -->
-                    <div
-                        v-if="currentSection === 'footer'"
-                        class="preview-container bg-gray-900"
-                    >
-                        <!-- Create a mini-preview of the footer that fits well in the admin panel -->
-                        <Footer :content="content" :preview-mode="true" />
-                    </div>
-                </div>
-            </div>
-
-            <!-- Edit Form -->
-            <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                <div class="px-6 py-4 bg-gray-50 border-b">
-                    <h3 class="text-lg font-semibold">Edit Content</h3>
-                </div>
-
-                <div class="p-6">
-                    <ContentHeroForm
-                        v-if="currentSection === 'hero'"
-                        :content="content"
-                        @saved="onContentSaved"
-                        @cancel="loadContent"
-                    />
-                    <ContentFooterForm
-                        v-if="currentSection === 'footer'"
-                        :content="content"
-                        @saved="onContentSaved"
-                        @cancel="loadContent"
-                    />
-                    <ContentCategoryForm
-                        v-if="currentSection === 'categories'"
-                        :content="content"
-                        @saved="onContentSaved"
-                        @cancel="loadContent"
-                    />
-                </div>
-            </div>
+            <p v-if="notice" class="notice">{{ notice }}</p>
+            <div v-if="activeTab === 'hero'" class="workspace"><div class="preview"><HeroSection :content="hero" /></div><GuardedHeroForm :content="hero" @saved="saved('hero', $event)" /></div>
+            <div v-else-if="activeTab === 'footer'" class="workspace"><div class="preview footer-preview"><Footer :content="footer" preview-mode /></div><ContentFooterForm :content="footer" @saved="saved('footer', $event)" @cancel="load" /></div>
+            <div v-else-if="activeTab === 'categories'" class="workspace"><ContentCategoryForm :content="{ categories }" @saved="saved('categories', $event)" @cancel="load" /></div>
+            <div v-else class="workspace"><StorefrontContentForm :content="storefront" :categories="categories" :panel="activeTab" @saved="saved('storefront', $event)" /></div>
         </template>
     </div>
 </template>
 
-<script setup>
-import { ref, onMounted, watch } from "vue";
-import axios from "axios";
-import { copyDefaultCategories } from "../../config/catalog";
-import ContentHeroForm from "@/components/admin/ContentHeroForm.vue";
-import ContentFooterForm from "@/components/admin/ContentFooterForm.vue";
-import ContentCategoryForm from "@/components/admin/ContentCategoryForm.vue";
-
-// Import actual components for preview
-import HeroSection from "@/components/sections/HeroSection.vue";
-import Footer from "@/components/Footer.vue";
-
-const loading = ref(true);
-const currentSection = ref("hero");
-const content = ref(null);
-const currentSlide = ref(0);
-
-// Load content data
-const loadContent = async () => {
-    loading.value = true;
-
-    try {
-        const response = await axios.get(`/contents/${currentSection.value}`);
-        content.value = response.data.content;
-        currentSlide.value = 0;
-    } catch (error) {
-        if (error.response && error.response.status === 404) {
-            // Initialize default content if none exists
-            if (currentSection.value === "hero") {
-                content.value = getDefaultHeroContent();
-            } else if (currentSection.value === "footer") {
-                content.value = getDefaultFooterContent();
-            } else if (currentSection.value === "categories") {
-                content.value = getDefaultCategoriesContent();
-            }
-        } else {
-            console.error("Error loading content:", error);
-        }
-    } finally {
-        loading.value = false;
-    }
-};
-
-// Get default hero content
-const getDefaultHeroContent = () => {
-    return {
-        leftSection: {
-            title: {
-                mainText: "",
-                highlightedText: "",
-                endText: "",
-            },
-            description:
-                "",
-            buttons: [
-                {
-                    text: "Get Started",
-                    link: "/register",
-                    type: "primary",
-                },
-                
-            ],
-            features: [
-               
-                {
-                    icon: "shopping-bag",
-                    title: "Shop",
-                    description: "Purchase your favorite products",
-                    link: "/products",
-                },
-            ],
-        },
-        rightSection: {
-            slides: [
-                {
-                    id: 1,
-                    image: "/placeholder.jpg",
-                    alt: "Library Books",
-                    stats: {
-                        label1: "",
-                        value1: "",
-                        label2: "",
-                        value2: "",
-                    },
-                },
-            ],
-        },
-    };
-};
-
-// Get default footer content
-const getDefaultFooterContent = () => {
-    return {
-        brand: {
-            description: "",
-            tagline: "Find yourself through meaningful jewelry",
-        },
-        socialLinks: [
-            {
-                name: "Facebook",
-                url: "#",
-                icon: ["fab", "facebook-f"],
-            },
-            {
-                name: "Twitter",
-                url: "#",
-                icon: ["fab", "twitter"],
-            },
-            {
-                name: "Instagram",
-                url: "#",
-                icon: ["fab", "instagram"],
-            },
-            {
-                name: "TikTok",
-                url: "#",
-                icon: ["fab", "tiktok"],
-            },
-        ],
-        quickLinks: [
-            { name: "Shop", url: "/products" },
-            { name: "About Us", url: "/about" },
-            { name: "Contact", url: "/contact" },
-        ],
-        helpLinks: [
-            { name: "FAQ", url: "/faq" },
-            { name: "Shipping Information", url: "/shipping" },
-            { name: "Returns Policy", url: "/returns" },
-            { name: "Privacy Policy", url: "/privacy" },
-            { name: "Terms & Conditions", url: "/terms" },
-        ],
-        legalLinks: [
-            { name: "Privacy Policy", url: "/privacy" },
-            { name: "Terms of Service", url: "/terms" },
-            { name: "Cookie Policy", url: "/cookies" },
-        ],
-        location: "Nairobi, Moi Avenue",
-        contactNumber: "+254 123456789",
-        newsletter: {
-            title: "Stay Connected",
-            description:
-                "Join our newsletter for the latest updates and exclusive offers.",
-        },
-    };
-};
-
-// Get default categories content
-const getDefaultCategoriesContent = () => {
-    return {
-        categories: copyDefaultCategories(),
-    };
-};
-
-// Handle content saved
-const onContentSaved = (data) => {
-    content.value = data.content;
-    alert("Content saved successfully!");
-};
-
-// Watch for section changes
-watch(currentSection, () => {
-    loadContent();
-});
-
-// Load content on component mount
-onMounted(() => {
-    loadContent();
-});
-</script>
-
 <style scoped>
-.preview-container {
-    /* Add styles to constrain the preview components to look good in the admin panel */
-    max-height: 600px;
-    overflow: auto;
-}
-
-/* Footer preview specific styles */
-.preview-container.bg-gray-900 {
-    color: white;
-}
+.tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid #e5e7eb;margin-bottom:24px;scrollbar-width:none}.tabs button{white-space:nowrap;padding:10px 13px;border-bottom:2px solid transparent;color:#6b7280;font-size:13px;font-weight:600}.tabs button.active{border-color:#9a7c50;color:#6f522d}.workspace{background:white;border-radius:9px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.06)}.preview{max-height:360px;overflow:auto;border:1px solid #e5e7eb;margin-bottom:26px}.footer-preview{background:#111;color:white}.notice{background:#ecfdf5;color:#166534;padding:10px 14px;border-radius:6px;margin-bottom:16px;font-size:13px}@media(max-width:640px){.workspace{padding:14px}.preview{display:none}.tabs{margin-inline:-8px;padding-inline:8px;margin-bottom:16px}.tabs button{min-height:44px}}
 </style>

@@ -1,6 +1,6 @@
 <template>
     <div class="container mx-auto p-4">
-        <h1 class="text-3xl font-bold mb-4">Your Cart</h1>
+        <h1 class="text-2xl sm:text-3xl font-bold mb-4">Your Cart</h1>
 
         <div v-if="cartStore.cartItems.length === 0">
             <p class="text-gray-600">Your cart is empty.</p>
@@ -12,9 +12,9 @@
                 <div
                     v-for="item in cartStore.cartItems"
                     :key="item.id"
-                    class="border rounded-lg p-4 flex items-center justify-between"
+                    class="border rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                 >
-                    <div class="flex items-center space-x-4">
+                    <div class="flex items-center gap-3 sm:space-x-4 min-w-0">
                         <img
                             :src="getImageUrl(item.product.coverImageUrl)"
                             :alt="item.product.title"
@@ -28,12 +28,13 @@
                                 {{ item.product.author }}
                             </p>
                             <p class="text-gray-800">
-                                KES {{ item.product.price.toFixed(2) }}
+                                <del v-if="item.product.salePrice && item.product.salePrice < item.product.price" class="mr-2 text-sm text-gray-400">KES {{ item.product.price.toFixed(2) }}</del>
+                                KES {{ Number(item.product.salePrice && item.product.salePrice < item.product.price ? item.product.salePrice : item.product.price).toFixed(2) }}
                             </p>
                         </div>
                     </div>
 
-                    <div class="flex items-center space-x-4">
+                    <div class="flex items-center justify-between sm:justify-end gap-3 sm:space-x-4 w-full sm:w-auto">
                         <!-- Quantity -->
                         <div class="flex items-center border rounded">
                             <button
@@ -90,12 +91,6 @@
                     <span class="text-gray-600">Subtotal</span>
                     <span class="font-semibold">
                         KES {{ cartStore.subtotal.toFixed(2) }}
-                    </span>
-                </div>
-                <div class="flex justify-between mb-2">
-                    <span class="text-gray-600">Tax (estimated)</span>
-                    <span class="font-semibold">
-                        KES {{ cartStore.tax.toFixed(2) }}
                     </span>
                 </div>
                 <hr class="my-2" />

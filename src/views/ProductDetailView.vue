@@ -1,5 +1,5 @@
 <template>
-    <div class="py-12">
+    <div class="product-detail-page py-12">
         <div class="container mx-auto px-4">
             <!-- Loading State -->
             <div v-if="isLoading" class="flex justify-center items-center h-64">
@@ -22,16 +22,16 @@
             <!-- Product Details -->
             <div
                 v-else-if="product"
-                class="grid grid-cols-1 md:grid-cols-2 gap-12"
+                class="product-detail-grid"
             >
                 <!-- Left Column: Image and Quick Actions -->
-                <div>
+                <div class="product-media-column">
                     <!-- Product Image -->
-                    <div class="rounded-lg overflow-hidden shadow-lg mb-6">
+                    <div class="product-image-card rounded-lg overflow-hidden mb-6">
                         <img
                             :src="imageUrl(product.coverImageUrl)"
                             :alt="product.title"
-                            class="w-full h-auto object-cover"
+                            class="product-detail-image"
                         />
                     </div>
 
@@ -40,11 +40,12 @@
                         <!-- Shop Actions -->
                         <div
                             v-if="product.quantityShop > 0"
-                            class="bg-white p-6 rounded-lg shadow-md"
+                            class="product-card bg-white p-6 rounded-lg"
                         >
                             <div class="flex items-center justify-between mb-4">
                                 <span class="text-2xl font-bold text-gray-900">
-                                    KES {{ product.price?.toFixed(2) }}
+                                    <del v-if="product.salePrice && product.salePrice < product.price" class="mr-2 text-base font-normal text-gray-400">KES {{ product.price?.toFixed(2) }}</del>
+                                    KES {{ Number(product.salePrice && product.salePrice < product.price ? product.salePrice : product.price).toFixed(2) }}
                                 </span>
                                 <span
                                     :class="{
@@ -125,7 +126,7 @@
                 </div>
 
                 <!-- Right Column: Product Information -->
-                <div>
+                <div class="product-card product-information">
                     <h1 class="text-3xl font-bold text-gray-900 mb-2">
                         {{ product.title }}
                     </h1>
@@ -219,7 +220,7 @@
                                 <div
                                     v-for="review in product.reviews"
                                     :key="review.id"
-                                    class="bg-white p-4 border-b-2 border-b-secondary"
+                                    class="review-card bg-white p-4 border-b-2 border-b-secondary"
                                 >
                                     <div
                                         class="flex justify-between items-start"
@@ -408,16 +409,20 @@
             </div>
 
             <!-- Related Products Section -->
-            <div v-if="relatedProducts.length > 0" class="mt-16">
-                <h2 class="text-2xl font-bold text-gray-900 mb-6">Related Products</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <ProductCard
-                        v-for="relatedProduct in relatedProducts"
-                        :key="relatedProduct.id"
-                        :product="relatedProduct"
-                    />
+            <section v-if="relatedProducts.length > 0" class="related-products">
+                <div class="related-heading">
+                    <div>
+                        <p class="related-kicker">You may also love</p>
+                        <h2>Complete your collection</h2>
+                    </div>
+                    <RouterLink to="/products" class="related-link">View all pieces <span>→</span></RouterLink>
                 </div>
-            </div>
+                <div class="related-grid">
+                    <div v-for="relatedProduct in relatedProducts" :key="relatedProduct.id" class="related-card">
+                        <FeaturedProductCard :product="relatedProduct" />
+                    </div>
+                </div>
+            </section>
         </div>
     </div>
 </template>
@@ -429,7 +434,7 @@ import { useUserStore } from "../stores/user";
 import { useCartStore } from "../stores/cart";
 import { useWishlistStore } from "../stores/wishlist";
 import { useSnackbarStore } from "../stores/snackbar";
-import ProductCard from "../components/ProductCard.vue";
+import FeaturedProductCard from "../components/FeaturedProductCard.vue";
 
 import axios from "axios";
 import { resolveAssetUrl } from "../utils/assetUrl";
@@ -727,3 +732,129 @@ watch(
     },
 );
 </script>
+
+<style scoped>
+.product-detail-page {
+    min-height: 100vh;
+    background: #fff;
+    color: #1a1a1a;
+}
+
+.product-card,
+.product-image-card,
+.review-card {
+    border: 1px solid #e7e0d6;
+    box-shadow: 0 12px 32px rgba(53, 44, 34, 0.08);
+}
+
+.product-information {
+    align-self: start;
+    padding: clamp(24px, 4vw, 48px);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.82);
+}
+
+.product-detail-grid {
+    width: min(100%, 1480px);
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: minmax(360px, 0.82fr) minmax(0, 1.18fr);
+    align-items: start;
+    gap: clamp(32px, 5vw, 64px);
+}
+
+.product-media-column {
+    width: min(100%, 560px);
+    justify-self: end;
+}
+
+.product-image-card {
+    background: #fff;
+    box-shadow: 0 18px 45px rgba(53, 44, 34, 0.1);
+    aspect-ratio: 4 / 5;
+    max-height: 610px;
+}
+
+.product-detail-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #f7f3ed;
+}
+
+.review-card {
+    border-bottom-color: #b08d57;
+    box-shadow: 0 8px 22px rgba(53, 44, 34, 0.06);
+}
+
+.related-products {
+    margin-top: 96px;
+    padding: 72px clamp(20px, 4vw, 58px);
+    border: 1px solid #e7e0d6;
+    background: #f7f3ed;
+}
+
+.related-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 42px;
+}
+
+.related-kicker {
+    margin-bottom: 12px;
+    color: #9a7c50;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+}
+
+.related-heading h2 {
+    color: #1a1a1a;
+    font-family: "GFS Didot", Georgia, serif;
+    font-size: clamp(34px, 4vw, 52px);
+    font-weight: 400;
+    line-height: 1;
+}
+
+.related-link {
+    padding-bottom: 7px;
+    border-bottom: 1px solid #b08d57;
+    color: #36322d;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+.related-link span { margin-left: 14px; }
+.related-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px 22px; }
+.related-card {
+    padding: 12px 12px 20px;
+    border: 1px solid #e7e0d6;
+    background: #fff;
+    box-shadow: 0 10px 28px rgba(53, 44, 34, 0.07);
+    transition: transform 300ms ease, box-shadow 300ms ease;
+}
+.related-card:hover { transform: translateY(-5px); box-shadow: 0 20px 42px rgba(53, 44, 34, 0.13); }
+
+@media (max-width: 767px) {
+    .product-detail-grid { grid-template-columns: 1fr; gap: 28px; }
+    .product-media-column { width: min(100%, 420px); justify-self: center; }
+    .product-image-card { width:100%;height:min(72vw,340px);max-height:none;aspect-ratio:auto; }
+    .product-information {
+        padding: 24px;
+    }
+    .related-products { margin-top: 64px; padding: 52px 18px; }
+    .related-heading { align-items: flex-start; flex-direction: column; margin-bottom: 30px; }
+    .related-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 12px; }
+    .related-card { padding: 8px 8px 16px; }
+}
+
+@media (max-width: 480px) {
+    .product-image-card { height:min(76vw,300px); }
+    .product-detail-page{padding-top:24px;padding-bottom:36px}.product-detail-grid{gap:18px}.product-information{padding:20px}.product-information h1{font-size:28px;line-height:1.1}.product-information>p{font-size:17px;margin-bottom:18px}.product-card.bg-white{padding:18px}.related-products{margin-top:52px;padding:48px 0}.related-heading{padding:0 18px}.related-grid{display:flex;gap:14px;padding:0 18px 8px;overflow-x:auto;scroll-snap-type:x mandatory}.related-card{flex:0 0 78vw;scroll-snap-align:start}.related-grid::-webkit-scrollbar{display:none}
+}
+</style>

@@ -1,6 +1,6 @@
 <template>
-    <main class="min-h-screen bg-gray-50 px-4 py-12">
-        <section class="mx-auto max-w-md rounded-lg bg-white p-8 shadow-md">
+    <main class="min-h-screen bg-white px-4 py-8 sm:py-12">
+        <section class="mx-auto max-w-md rounded-lg bg-white p-5 sm:p-8 shadow-md">
             <img class="mx-auto h-16 w-auto" src="/essential-logo.png" alt="Essential logo" />
             <h1 class="mt-6 text-center text-2xl font-bold text-gray-900">
                 Reset your password

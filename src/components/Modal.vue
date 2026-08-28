@@ -1,7 +1,7 @@
 <template>
     <div v-if="show" class="fixed z-50 inset-0 overflow-y-auto">
         <div
-            class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20"
+            class="modal-shell flex items-center justify-center min-h-screen pt-4 px-4 pb-20"
         >
             <!-- Backdrop -->
             <div
@@ -11,7 +11,7 @@
 
             <!-- Modal -->
             <div
-                class="relative bg-white rounded-lg shadow-xl w-full max-w-2xl transform transition-all"
+                class="modal-panel relative bg-white rounded-lg shadow-xl w-full max-w-2xl transform transition-all"
             >
                 <!-- Header -->
                 <div class="flex items-center justify-between p-4 border-b">
@@ -39,7 +39,7 @@
                 </div>
 
                 <!-- Body -->
-                <div class="p-6 max-h-[calc(100vh-200px)] overflow-y-auto">
+                <div class="modal-body p-6 max-h-[calc(100vh-200px)] overflow-y-auto">
                     <slot></slot>
                 </div>
 
@@ -62,3 +62,7 @@ defineProps({
 
 defineEmits(["close"]);
 </script>
+
+<style scoped>
+@media(max-width:640px){.modal-shell{align-items:flex-end;padding:12px 0 0}.modal-panel{max-height:calc(100dvh - 12px);border-radius:16px 16px 0 0}.modal-body{padding:18px;max-height:calc(100dvh - 130px)}.modal-panel>div:first-of-type{padding:14px 18px}.modal-panel>div:first-of-type h3{font-size:18px}}
+</style>

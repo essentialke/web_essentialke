@@ -16,21 +16,13 @@
                 errors.title
             }}</span>
         </div>
-        <div>
-            <label for="barcode" class="block text-sm font-medium text-gray-700"
-                >Barcode</label
-            >
-            <input
-                type="text"
-                id="barcode"
-                v-model="formData.barcode"
-                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-            />
-            <span v-if="errors.barcode" class="text-red-500 text-xs">{{
-                errors.barcode
-            }}</span>
-        </div>
 
+        <div>
+            <label for="salePrice" class="block text-sm font-medium text-gray-700">Sale Price <span class="font-normal text-gray-500">(optional)</span></label>
+            <input id="salePrice" v-model="formData.salePrice" type="number" min="0" step="0.01" placeholder="Leave blank when not on sale" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" />
+            <p class="mt-1 text-xs text-gray-500">Must be lower than the regular price. Clearing it removes the product from Sale.</p>
+            <span v-if="errors.salePrice" class="text-red-500 text-xs">{{ errors.salePrice }}</span>
+        </div>
         <!-- Category -->
         <div>
             <label
@@ -222,9 +214,9 @@ const formData = ref({
     coverImageUrl: "",
     description: "",
     price: null,
+    salePrice: null,
     quantityShop: 0,
     featured: false,
-    barcode: Date.now(),
     status: "active",
     coverImage: null, // Property to hold the selected file
 });
@@ -297,10 +289,10 @@ watch(
                 author: "",
                 isbn: "",
                 category: "",
-                barcode: "",
                 coverImageUrl: "",
                 description: "",
                 price: null,
+                salePrice: null,
                 quantityShop: 0,
                 quantityLibraryTotal: 0,
                 featured: false,
@@ -327,6 +319,15 @@ const validateForm = () => {
     if (formData.value.price === null) {
         errors.value.price = "Price is required.";
         isValid = false;
+    }
+
+    if (formData.value.salePrice !== null && formData.value.salePrice !== "") {
+        const regularPrice = Number(formData.value.price);
+        const salePrice = Number(formData.value.salePrice);
+        if (salePrice <= 0 || salePrice >= regularPrice) {
+            errors.value.salePrice = "Sale price must be lower than the regular price.";
+            isValid = false;
+        }
     }
 
     if (formData.value.quantityShop === null) {
@@ -366,6 +367,8 @@ const onSubmit = () => {
 
         // Format the date to include time component
         const formattedData = { ...formData.value };
+        // Barcode is a legacy database field and is no longer part of product management.
+        delete formattedData.barcode;
         if (formattedData.publicationDate) {
             // Append time component to make it a valid ISO datetime
             formattedData.publicationDate = `${formattedData.publicationDate}T00:00:00.000Z`;

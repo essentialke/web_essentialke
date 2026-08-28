@@ -64,10 +64,7 @@ import {
     faUsers,
     faBook,
     faMoneyCheckAlt,
-    faCalendar,
-    faBookOpen,
-    faBlog,
-    faCog,
+    faCommentDots,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
@@ -76,10 +73,7 @@ library.add(
     faUsers,
     faBook,
     faMoneyCheckAlt,
-    faCalendar,
-    faBookOpen,
-    faBlog,
-    faCog,
+    faCommentDots,
 );
 
 const props = defineProps({
@@ -95,28 +89,14 @@ const route = useRoute();
 
 const links = [
     { to: "/admin/dashboard", icon: "tachometer-alt", name: "Dashboard" },
-    { to: "/admin/users", icon: "users", name: "Users" },
     { to: "/admin/products", icon: "cart-shopping", name: "Products" },
+    { to: "/admin/subscribers", icon: "users", name: "Subscribers" },
     {
         to: "/admin/transactions",
         icon: "money-check-alt",
         name: "Transactions",
     },
-    {
-        to: "/admin/gift-vouchers",
-        icon: "money-check-alt",
-        name: "Gift Vouchers",
-    },
-    {
-        to: "/admin/general-posts", 
-        icon: "blog", 
-        name: "General Posts",
-    },
-    {
-        to: "/admin/content", 
-        icon: "cog", 
-        name: "Website Settings",
-    },
+    { to: "/admin/testimonials", icon: "comment-dots", name: "Testimonials" },
     { to: "/admin/payment-settings", icon: "money-check-alt", name: "Payment Settings" },
 ];
 
