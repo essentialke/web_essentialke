@@ -45,13 +45,22 @@
                 <font-awesome-icon :icon="item.icon" class="w-5 h-5" />
                 <span>{{ item.name }}</span>
             </RouterLink>
+
+            <button
+                type="button"
+                class="flex w-full items-center space-x-3 rounded-lg p-2 text-red-600 transition-colors duration-200 hover:bg-red-50"
+                @click="logout"
+            >
+                <font-awesome-icon :icon="['fas', 'sign-out-alt']" class="w-5 h-5" />
+                <span>Logout</span>
+            </button>
         </nav>
     </aside>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
-import { RouterLink, useRoute } from "vue-router";
+import { RouterLink, useRoute, useRouter } from "vue-router";
 import { useUserStore } from "../../stores/user";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
@@ -66,6 +75,7 @@ import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 library.add(faUser, faBook, faCog, faSignOutAlt, faShoppingCart);
 
 const route = useRoute();
+const router = useRouter();
 const userStore = useUserStore();
 
 const isMobile = ref(false);
@@ -102,6 +112,8 @@ const closeSidebarIfMobile = () => {
 
 const logout = () => {
     userStore.logout();
+    closeSidebarIfMobile();
+    router.push("/login");
 };
 
 onMounted(() => {
