@@ -82,7 +82,7 @@ router.afterEach(closeMenus);
                 <img src="/essential-logo.png" alt="Essential" />
             </RouterLink>
 
-            <nav class="desktop-nav">
+            <nav class="desktop-nav hidden md:flex">
                 <template v-for="item in nav" :key="item.name">
                     <div v-if="item.dropdown" class="nav-dropdown">
                         <RouterLink :to="item.path" class="dropdown-trigger">{{ item.name }} <span aria-hidden="true"></span></RouterLink>
@@ -94,7 +94,7 @@ router.afterEach(closeMenus);
                 </template>
             </nav>
 
-            <div class="header-side header-icons">
+            <div class="header-side header-icons min-w-0 shrink-0">
                 <button @click="searchOpen = !searchOpen" aria-label="Search">
                     <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
                 </button>
@@ -109,7 +109,7 @@ router.afterEach(closeMenus);
                     <svg viewBox="0 0 24 24"><path d="M6 8h12l1 13H5L6 8z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg>
                     <b v-if="cartStore.cartItemCount">{{ cartStore.cartItemCount }}</b>
                 </RouterLink>
-                <button class="mobile-toggle" @click="toggleMenu" aria-label="Open menu">
+                <button class="mobile-toggle flex md:hidden" @click="toggleMenu" :aria-label="menuOpen ? 'Close menu' : 'Open menu'" :aria-expanded="menuOpen">
                     <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
                 </button>
             </div>
@@ -120,7 +120,7 @@ router.afterEach(closeMenus);
             <button type="submit">Search</button>
         </form>
 
-        <nav v-if="menuOpen" class="mobile-nav">
+        <nav v-if="menuOpen" class="mobile-nav w-full max-h-[calc(100dvh-4rem)] overflow-y-auto md:hidden" aria-label="Mobile navigation">
             <template v-for="item in nav" :key="item.name">
                 <div v-if="item.dropdown" class="mobile-collections">
                     <button @click="collectionsOpen = !collectionsOpen" :aria-expanded="collectionsOpen">{{ item.name }} <span>{{ collectionsOpen ? '−' : '+' }}</span></button>
@@ -151,5 +151,6 @@ router.afterEach(closeMenus);
 .header-main{height:82px;display:grid;grid-template-columns:110px minmax(0,1fr) 150px;align-items:center}.desktop-nav{height:100%;align-items:center;gap:clamp(18px,2.3vw,40px)}.desktop-nav>a,.desktop-nav .dropdown-trigger{font-size:10px;letter-spacing:.14em;white-space:nowrap}.nav-dropdown{height:100%;padding:0;display:flex;align-items:center}.dropdown-panel{top:calc(100% - 1px)}
 .dropdown-trigger{display:inline-flex;align-items:center;line-height:1}.dropdown-trigger span{display:block;width:6px;height:6px;margin:0 0 3px 1px;border-right:1px solid currentColor;border-bottom:1px solid currentColor;transform:rotate(45deg);transform-origin:center;flex:0 0 auto}
 @media(max-width:1000px){.header-main{padding:0 24px;grid-template-columns:90px minmax(0,1fr) 130px}.desktop-nav{gap:16px}.desktop-nav>a,.desktop-nav .dropdown-trigger{font-size:9px;letter-spacing:.09em}.header-icons{gap:13px}}
-@media(max-width:800px){.header-main{height:64px;display:flex;padding:0 14px}.desktop-nav{display:none}.header-icons{gap:6px}.header-icons>a,.header-icons>button{width:42px;height:42px}.mobile-nav{padding:28px 22px 40px;gap:20px}.mobile-nav>a,.mobile-collections button{font-size:26px;line-height:1.2}.search-drawer{padding:14px;gap:8px}.search-drawer input{width:100%;min-width:0;font-size:18px}.search-drawer button{padding:0 16px;min-height:44px}}
+@media(max-width:800px){.header-main{height:64px;display:flex;padding:0 8px 0 12px;gap:4px}.wordmark{width:48px;flex:0 0 48px}.desktop-nav{display:none}.header-icons{gap:0;margin-left:auto}.header-icons>a,.header-icons>button{width:44px;height:44px;flex:0 0 44px}.mobile-nav{padding:28px 20px 40px;gap:20px}.mobile-nav>a,.mobile-collections button{min-height:44px;font-size:26px;line-height:1.2}.mobile-collection-links a{display:flex;align-items:center;min-height:44px}.search-drawer{padding:12px;gap:8px}.search-drawer input{width:100%;min-width:0;font-size:16px}.search-drawer button{padding:0 14px;min-width:72px;min-height:44px}}
+@media(max-width:360px){.header-icons>a,.header-icons>button{width:42px;flex-basis:42px}.wordmark{width:44px;flex-basis:44px}.wordmark img{width:40px}}
 </style>

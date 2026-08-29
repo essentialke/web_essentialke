@@ -37,7 +37,7 @@
 
             <!-- Page Title -->
             <h1
-                class="text-4xl font-display-serif font-bold mb-8 text-gray-800"
+                class="text-3xl sm:text-4xl font-display-serif font-bold mb-6 sm:mb-8 text-gray-800"
             >
                 {{ pageContent.title }}
             </h1>

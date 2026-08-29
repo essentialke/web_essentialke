@@ -45,7 +45,7 @@
         </div>
 
         <!-- Content Container -->
-        <div class="p-6 flex flex-col flex-grow">
+        <div class="p-3 sm:p-5 md:p-6 flex min-w-0 flex-col flex-grow">
             <!-- Category Badge -->
             <div class="mb-2">
                 <span
@@ -79,8 +79,8 @@
 
             <!-- Price and Actions -->
             <div class="mt-auto pt-4 border-t border-gray-100">
-                <div class="flex items-center justify-between">
-                    <div class="flex flex-col">
+                <div class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="flex min-w-0 flex-col">
                         <span class="text-sm text-gray-500">Price</span>
                         <span
                             class="product-card-price text-sm font-bold text-primary font-display-serif"
@@ -296,5 +296,5 @@ async function handleAddToWishlist() {
 .add-cart-button.is-added { background:#536646;border-color:#536646 }
 .add-cart-button.is-disabled { background:#dedbd5;border-color:#dedbd5;color:#77736c;box-shadow:none;cursor:not-allowed }
 .product-card--compact .add-cart-button { min-width:8.75rem;padding:.65rem .85rem;font-size:.75rem }
-@media(max-width:520px){.mt-auto>div{align-items:flex-end;gap:.65rem}.add-cart-button,.product-card--compact .add-cart-button{min-width:0;padding:.65rem .75rem}}
+@media(max-width:520px){.product-card-price{font-size:.75rem}.product-card-price b{overflow-wrap:anywhere}.add-cart-button,.product-card--compact .add-cart-button{width:100%;min-width:0;min-height:44px;padding:.65rem .5rem;font-size:.7rem}.product-cover-container>button{top:.5rem;right:.5rem;display:grid;width:44px;height:44px;padding:0}.sale-badge{left:8px;top:8px}}
 </style>
