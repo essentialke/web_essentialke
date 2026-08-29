@@ -36,4 +36,6 @@ const price = computed(() => Number(isOnSale.value ? props.product.salePrice : p
 .product-title{font-family:'GFS Didot',Georgia,serif;font-size:20px;line-height:1.25;letter-spacing:-.01em}.price{font-size:15px;font-weight:650;color:#171612}.material{font-family:'Geist',sans-serif;font-weight:450}.badge,.quick-view{font-family:'Geist',sans-serif;font-weight:600}.wish,.image-placeholder{font-family:'GFS Didot',Georgia,serif}
 .price del{margin-right:8px;color:#9a948c;font-size:12px;font-weight:400}.price:has(del){color:#9b633b}
 @media(hover:none){.quick-view{display:none}.wish{width:40px;height:40px;top:8px;right:8px}}
+.product-tile{width:100%;min-width:0}.product-image-wrap{width:100%}
+@media(max-width:520px){.product-info{padding-top:11px}.product-title{font-size:16px;line-height:1.2}.material{margin:5px 0 7px;font-size:9px}.price{font-size:13px}.rating{margin-bottom:5px}.wish{width:44px;height:44px;top:4px;right:4px}}
 </style>

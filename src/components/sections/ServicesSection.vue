@@ -15,7 +15,7 @@
         </div>
         <div class="container mx-auto px-4">
             <div class="text-center mb-20">
-                <h2 class="text-4xl md:text-5xl font-bold text-pink-100 mb-6">
+                <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-pink-100 mb-4 sm:mb-6">
                     Our Services
                 </h2>
                 <p

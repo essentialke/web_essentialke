@@ -10,7 +10,7 @@
                 </p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-8">
                 <TestimonialCard
                     v-for="testimonial in testimonials"
                     :key="testimonial.name"

@@ -42,11 +42,13 @@ onMounted(async () => {
 </script>
 
 <template>
-    <Navbar />
-    <main class="flex-grow">
-        <RouterView />
-    </main>
-    <Footer :content="footerContent" />
-    <Snackbar />
-    <LoadingOverlay />
+    <div class="min-h-screen w-full min-w-0 overflow-x-hidden flex flex-col">
+        <Navbar />
+        <main class="min-w-0 w-full flex-grow">
+            <RouterView />
+        </main>
+        <Footer :content="footerContent" />
+        <Snackbar />
+        <LoadingOverlay />
+    </div>
 </template>
