@@ -2,11 +2,11 @@
 import { computed, onMounted, ref } from "vue";
 import axios from "axios";
 import ProductCard from "../components/ProductCard.vue";
-import { resolveAssetUrl } from "../utils/assetUrl";
+import { createImageSrcSet, resolveAssetUrl } from "../utils/assetUrl";
 
 const bundles = ref([]);
 const loading = ref(true);
-const heroImage = computed(() => bundles.value[0]?.coverImageUrl ? resolveAssetUrl(bundles.value[0].coverImageUrl) : "/essential-hero.jpg");
+const heroImage = computed(() => bundles.value[0]?.coverImageUrl || "/essential-hero.jpg");
 
 onMounted(async () => {
     try {
@@ -20,7 +20,7 @@ onMounted(async () => {
     <main class="gifting-page">
         <section class="gifting-hero">
             <div class="hero-copy"><p class="eyebrow">Gifts with meaning</p><h1>Beautifully paired,<br />ready to give.</h1><p>Thoughtful jewelry bundles curated for birthdays, milestones, celebrations, and the moments in between.</p><a href="#gift-bundles">Explore gift bundles <span>↓</span></a></div>
-            <div class="hero-image"><img :src="heroImage" alt="Essential jewelry gift bundle" /><span>Curated with care<br />Presented beautifully</span></div>
+            <div class="hero-image"><img :src="resolveAssetUrl(heroImage, { width: 1600 })" :srcset="createImageSrcSet(heroImage, [480, 768, 1024, 1600])" sizes="(max-width: 900px) 100vw, 55vw" alt="Essential jewelry gift bundle" /><span>Curated with care<br />Presented beautifully</span></div>
         </section>
 
         <section class="gift-promises" aria-label="Gift service benefits">

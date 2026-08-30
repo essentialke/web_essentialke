@@ -3,7 +3,7 @@ import { computed, nextTick, onBeforeUnmount, ref, onMounted } from "vue";
 import axios from "axios";
 import HeroSection from "../components/sections/HeroSection.vue";
 import FeaturedProductsSection from "../components/sections/FeaturedProductsSection.vue";
-import { resolveAssetUrl } from "../utils/assetUrl";
+import { createImageSrcSet, resolveAssetUrl } from "../utils/assetUrl";
 import { copyDefaultCategories } from "../config/catalog";
 import { DEFAULT_STOREFRONT_CONTENT, normalizeStorefrontContent } from "../config/storefront";
 
@@ -41,7 +41,7 @@ onMounted(async () => {
 });
 
 const categoryById = (id) => catalogCategories.value.find((category) => category.id === id);
-const productImage = (product) => product?.coverImageUrl ? resolveAssetUrl(product.coverImageUrl) : "";
+const productImage = (product) => product?.coverImageUrl || "";
 const matchingProduct = (label, index = 0) => {
     const needle = label.toLowerCase().replace(/s$/, "");
     return catalogProducts.value.find((product) =>
@@ -133,7 +133,7 @@ onBeforeUnmount(() => {
             </div>
             <nav class="category-row" aria-label="Shop by category">
                 <RouterLink v-for="category in categoryTiles" :key="category.name" :to="{ path: '/products', query: { category: category.name } }">
-                    <span class="category-image"><img v-if="category.image" :src="category.image" alt="" loading="lazy" /></span>
+                    <span class="category-image"><img v-if="category.image" :src="resolveAssetUrl(category.image, { width: 320 })" :srcset="createImageSrcSet(category.image, [160, 240, 320])" sizes="132px" alt="" loading="lazy" /></span>
                     <span>{{ category.name }}</span>
                 </RouterLink>
             </nav>
@@ -148,7 +148,7 @@ onBeforeUnmount(() => {
             </div>
             <div class="collection-grid">
                 <RouterLink v-for="collection in collectionTiles" :key="collection.name" :to="{ path: '/products', query: { category: collection.query } }" class="collection-card">
-                    <img v-if="collection.image" :src="collection.image" :alt="`${collection.name} collection`" loading="lazy" />
+                    <img v-if="collection.image" :src="resolveAssetUrl(collection.image, { width: 720 })" :srcset="createImageSrcSet(collection.image, [320, 480, 720])" sizes="(max-width: 900px) 50vw, 25vw" :alt="`${collection.name} collection`" loading="lazy" />
                     <div><p>{{ collection.name }}</p><span>{{ collection.copy }}</span></div>
                 </RouterLink>
             </div>
@@ -158,7 +158,7 @@ onBeforeUnmount(() => {
 
         <section v-if="isVisible('gifting')" class="gift-banner" :style="sectionStyle('gifting')">
             <div class="gift-copy"><p class="kicker">{{ storefrontContent.gifting.eyebrow }}</p><h2>{{ storefrontContent.gifting.heading }}</h2><p>{{ storefrontContent.gifting.body }}</p><RouterLink :to="storefrontContent.gifting.ctaRoute">{{ storefrontContent.gifting.ctaLabel }} <span>→</span></RouterLink></div>
-            <div class="gift-image"><img v-if="giftImage" :src="giftImage" alt="Essential jewelry gift selection" loading="lazy" /></div>
+            <div class="gift-image"><img v-if="giftImage" :src="resolveAssetUrl(giftImage, { width: 1280 })" :srcset="createImageSrcSet(giftImage, [480, 768, 1024, 1280])" sizes="(max-width: 900px) 100vw, 50vw" alt="Essential jewelry gift selection" loading="lazy" /></div>
         </section>
 
         <section v-if="isVisible('testimonials')" class="reviews" :style="sectionStyle('testimonials')">

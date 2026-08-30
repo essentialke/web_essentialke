@@ -29,7 +29,9 @@
                     <!-- Product Image -->
                     <div class="product-image-card rounded-lg overflow-hidden mb-6">
                         <img
-                            :src="imageUrl(product.coverImageUrl)"
+                            :src="resolveAssetUrl(product.coverImageUrl, { width: 1280 })"
+                            :srcset="createImageSrcSet(product.coverImageUrl, [480, 720, 960, 1280])"
+                            sizes="(max-width: 900px) 100vw, 50vw"
                             :alt="product.title"
                             class="product-detail-image"
                         />
@@ -437,7 +439,7 @@ import { useSnackbarStore } from "../stores/snackbar";
 import FeaturedProductCard from "../components/FeaturedProductCard.vue";
 
 import axios from "axios";
-import { resolveAssetUrl } from "../utils/assetUrl";
+import { createImageSrcSet, resolveAssetUrl } from "../utils/assetUrl";
 
 const route = useRoute();
 const router = useRouter();
@@ -470,8 +472,6 @@ const newReview = ref({
 
 // Check if coming from /library route using query parameter
 isFromLibrary.value = route.query.from === "library";
-
-const imageUrl = computed(() => resolveAssetUrl);
 
 // Fetch product details and related products
 onMounted(async () => {

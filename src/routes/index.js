@@ -1,38 +1,38 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useUserStore } from "../stores/user";
 
-import HomeView from "../views/HomeView.vue";
-import AboutView from "../views/AboutView.vue";
-import LoginView from "../views/LoginView.vue";
-import RegisterView from "../views/RegisterView.vue";
-import AcceptInvitationView from "../views/AcceptInvitationView.vue";
-import ProductView from "../views/ProductView.vue";
-import ProductDetailsView from "../views/ProductDetailView.vue";
-import VerifyEmailView from "../views/VerifyEmailView.vue";
-import ForgotPasswordView from "../views/ForgotPasswordView.vue";
-import ResetPasswordView from "../views/ResetPasswordView.vue";
-import CartView from "../views/CartView.vue";
-import WishListView from "../views/WishListView.vue";
-import SearchView from "../views/SearchView.vue";
-import GiftingView from "../views/GiftingView.vue";
-import Checkout from "../views/CheckoutView.vue";
+const HomeView = () => import("../views/HomeView.vue");
+const AboutView = () => import("../views/AboutView.vue");
+const LoginView = () => import("../views/LoginView.vue");
+const RegisterView = () => import("../views/RegisterView.vue");
+const AcceptInvitationView = () => import("../views/AcceptInvitationView.vue");
+const ProductView = () => import("../views/ProductView.vue");
+const ProductDetailsView = () => import("../views/ProductDetailView.vue");
+const VerifyEmailView = () => import("../views/VerifyEmailView.vue");
+const ForgotPasswordView = () => import("../views/ForgotPasswordView.vue");
+const ResetPasswordView = () => import("../views/ResetPasswordView.vue");
+const CartView = () => import("../views/CartView.vue");
+const WishListView = () => import("../views/WishListView.vue");
+const SearchView = () => import("../views/SearchView.vue");
+const GiftingView = () => import("../views/GiftingView.vue");
+const Checkout = () => import("../views/CheckoutView.vue");
 
-import DashboardLayout from "../views/user/DashboardLayout.vue";
-import DashboardProfile from "../views/user/Profile.vue";
-import DashboardSettings from "../views/user/Settings.vue";
-import DashboardOrders from "../views/user/Orders.vue";
-import DynamicPageView from "../views/DynamicPageView.vue";
-import NotFoundView from "../views/NotFoundView.vue";
+const DashboardLayout = () => import("../views/user/DashboardLayout.vue");
+const DashboardProfile = () => import("../views/user/Profile.vue");
+const DashboardSettings = () => import("../views/user/Settings.vue");
+const DashboardOrders = () => import("../views/user/Orders.vue");
+const DynamicPageView = () => import("../views/DynamicPageView.vue");
+const NotFoundView = () => import("../views/NotFoundView.vue");
 
-import AdminLayout from "../views/admin/AdminLayout.vue";
-import AdminDashboard from "../views/admin/AdminDashboard.vue";
-import AdminProducts from "../views/admin/AdminProducts.vue";
-import AdminTransactions from "@/views/admin/AdminTransactions.vue";
-import AdminReviews from "@/views/admin/AdminReviews.vue"; // Import AdminReviews - assuming you have this as well
-import AdminPaymentSettings from "@/views/admin/AdminPaymentSettings.vue";
-import AdminTestimonials from "@/views/admin/AdminTestimonials.vue";
-import AdminChangePasswordView from "@/views/admin/AdminChangePasswordView.vue";
-import AdminSubscribers from "@/views/admin/AdminSubscribers.vue";
+const AdminLayout = () => import("../views/admin/AdminLayout.vue");
+const AdminDashboard = () => import("../views/admin/AdminDashboard.vue");
+const AdminProducts = () => import("../views/admin/AdminProducts.vue");
+const AdminTransactions = () => import("@/views/admin/AdminTransactions.vue");
+const AdminReviews = () => import("@/views/admin/AdminReviews.vue");
+const AdminPaymentSettings = () => import("@/views/admin/AdminPaymentSettings.vue");
+const AdminTestimonials = () => import("@/views/admin/AdminTestimonials.vue");
+const AdminChangePasswordView = () => import("@/views/admin/AdminChangePasswordView.vue");
+const AdminSubscribers = () => import("@/views/admin/AdminSubscribers.vue");
 
 const routes = [
   {

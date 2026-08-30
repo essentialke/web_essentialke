@@ -1,31 +1,17 @@
 <script setup>
 import { computed } from "vue";
 import { RouterLink } from "vue-router";
-import { resolveAssetUrl } from "../../utils/assetUrl";
+import { createImageSrcSet, resolveAssetUrl } from "../../utils/assetUrl";
 
 const props = defineProps({ content: { type: Object, default: null } });
 const slide = computed(() => props.content?.rightSection?.slides?.[0]);
 const heroImage = computed(() =>
-    slide.value?.image ? resolveAssetUrl(slide.value.image) : "/essential-hero.jpg",
+    slide.value?.image
+        ? resolveAssetUrl(slide.value.image, { transform: false })
+        : "/essential-hero.jpg",
 );
-const cloudinaryVariant = (url, width) => {
-    if (!url?.includes("res.cloudinary.com") || !url.includes("/image/upload/")) {
-        return url;
-    }
-
-    return url.replace(
-        "/image/upload/",
-        `/image/upload/f_auto,q_auto:best,w_${width}/`,
-    );
-};
-const heroSrc = computed(() => cloudinaryVariant(heroImage.value, 1920));
-const heroSrcset = computed(() => {
-    if (!heroImage.value?.includes("res.cloudinary.com")) return undefined;
-
-    return [768, 1280, 1920, 2560]
-        .map((width) => `${cloudinaryVariant(heroImage.value, width)} ${width}w`)
-        .join(", ");
-});
+const heroSrc = computed(() => resolveAssetUrl(heroImage.value, { width: 1920 }));
+const heroSrcset = computed(() => createImageSrcSet(heroImage.value, [768, 1280, 1920, 2560]));
 const title = computed(() => {
     const t = props.content?.leftSection?.title;
     const contentTitle = [t?.mainText, t?.highlightedText, t?.endText].filter(Boolean).join(" ");

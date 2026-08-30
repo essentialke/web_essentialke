@@ -33,9 +33,12 @@
                 <div class="relative">
                     <RouterLink :to="`/product/${item.product.id}/${item.product.slug}`">
                         <img
-                            :src="getImageUrl(item.product.coverImageUrl)"
+                            :src="resolveAssetUrl(item.product.coverImageUrl, { width: 720 })"
+                            :srcset="createImageSrcSet(item.product.coverImageUrl, [240, 360, 540, 720])"
+                            sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
                             :alt="item.product.title"
                             class="w-full h-64 object-cover"
+                            loading="lazy"
                         />
                     </RouterLink>
                     <button
@@ -85,13 +88,14 @@
 </template>
 
 <script setup>
-import { onMounted, computed } from "vue";
+import { onMounted } from "vue";
 import { useWishlistStore } from "../stores/wishlist";
 import { RouterLink } from "vue-router";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faTimes, faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { faHeart } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { createImageSrcSet, resolveAssetUrl } from "../utils/assetUrl";
 
 library.add(faTimes, faHeart, faArrowRight);
 
@@ -109,17 +113,6 @@ const removeFromWishlist = async (productId) => {
     }
 };
 
-const getImageUrl = computed(() => (coverImageUrl) => {
-    if (!coverImageUrl) return "";
-    if (coverImageUrl.startsWith("http")) {
-        return coverImageUrl;
-    } else {
-        const baseUrl = import.meta.env.DEV
-            ? "http://localhost:3000"
-            : import.meta.env.VITE_ASSET_URL;
-        return `${baseUrl}${coverImageUrl}`;
-    }
-});
 </script>
 
 <style scoped>
