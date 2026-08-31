@@ -132,6 +132,7 @@ import { computed, ref } from "vue";
 import { RouterLink, useRouter } from "vue-router";
 import { useUserStore } from "../stores/user"; // Import the user store
 import { useWishlistStore } from "../stores/wishlist";
+import { useCartStore } from "../stores/cart";
 import { useSnackbarStore } from "../stores/snackbar";
 import GoogleSignInButton from "../components/GoogleSignInButton.vue";
 
@@ -141,22 +142,31 @@ const rememberMe = ref(false);
 const router = useRouter();
 const userStore = useUserStore();
 const wishlistStore = useWishlistStore();
+const cartStore = useCartStore();
 const snackbarStore = useSnackbarStore();
 const isAdminLogin = computed(() => {
     const redirectRoute = router.currentRoute.value.query.redirect;
     return typeof redirectRoute === "string" && redirectRoute.startsWith("/admin");
 });
 
-const finishLogin = () => {
+const finishLogin = async () => {
     wishlistStore.fetchWishlistItems();
     const redirectRoute = router.currentRoute.value.query.redirect;
+    const productId = Number(router.currentRoute.value.query.cartProductId);
+    const quantity = Math.max(1, Number(router.currentRoute.value.query.quantity) || 1);
+    if (Number.isInteger(productId) && productId > 0) {
+        await cartStore.addToCart({ id: productId }, quantity);
+        await cartStore.fetchCartItems();
+        router.push("/cart");
+        return;
+    }
     router.push(redirectRoute || "/");
 };
 
 const handleGoogleLogin = async (credential) => {
     try {
         await userStore.googleLogin(credential);
-        finishLogin();
+        await finishLogin();
     } catch (error) {
         snackbarStore.addSnackbar({
             message: error.response?.data?.error || "Google sign-in failed.",
@@ -182,7 +192,7 @@ const handleLogin = async () => {
         if (success) {
             // Handle successful login
             console.log("Login successful");
-            finishLogin();
+            await finishLogin();
         }
     } catch (error) {
         // Handle login error

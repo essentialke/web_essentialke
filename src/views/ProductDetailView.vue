@@ -527,7 +527,7 @@ const isInWishlist = computed(() => {
 
 async function addToCart() {
     if (!userStore.isAuthenticated) {
-        authPromptStore.open(route.fullPath);
+        authPromptStore.open(route.fullPath, product.value.id, quantity.value);
         return;
     }
 

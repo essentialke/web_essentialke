@@ -115,7 +115,7 @@
                 <p class="text-sm">
                     Already have an account?
                     <RouterLink
-                        to="/login"
+                        :to="{ path: '/login', query: route.query }"
                         class="font-medium text-primary hover:text-secondary"
                     >
                         Sign in
@@ -128,10 +128,11 @@
 
 <script setup>
 import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { registerUser } from "../services/api";
 import { useSnackbarStore } from "../stores/snackbar";
 import { useUserStore } from "../stores/user";
+import { useCartStore } from "../stores/cart";
 import GoogleSignInButton from "../components/GoogleSignInButton.vue";
 
 const name = ref("");
@@ -139,8 +140,22 @@ const email = ref("");
 const password = ref("");
 const confirmPassword = ref("");
 const router = useRouter();
+const route = useRoute();
 const snackbarStore = useSnackbarStore();
 const userStore = useUserStore();
+const cartStore = useCartStore();
+
+const finishAuthenticatedRegistration = async () => {
+    const productId = Number(route.query.cartProductId);
+    const quantity = Math.max(1, Number(route.query.quantity) || 1);
+    if (Number.isInteger(productId) && productId > 0) {
+        await cartStore.addToCart({ id: productId }, quantity);
+        await cartStore.fetchCartItems();
+        await router.push("/cart");
+        return;
+    }
+    await router.push(route.query.redirect || "/");
+};
 
 const handleGoogleSignup = async (credential) => {
     try {
@@ -151,7 +166,7 @@ const handleGoogleSignup = async (credential) => {
                 : "Welcome back!",
             type: "success",
         });
-        router.push("/");
+        await finishAuthenticatedRegistration();
     } catch (error) {
         snackbarStore.addSnackbar({
             message: error.response?.data?.error || "Google signup failed.",
@@ -190,7 +205,16 @@ const handleRegister = async () => {
             message: "Registration successful! Please check your email to verify your account.",
             type: "success"
         });
-        router.push("/login"); // Redirect to login page
+        router.push({
+            path: "/login",
+            query: {
+                redirect: route.query.cartProductId ? "/cart" : (route.query.redirect || "/"),
+                ...(route.query.cartProductId ? {
+                    cartProductId: route.query.cartProductId,
+                    quantity: route.query.quantity || 1,
+                } : {}),
+            },
+        });
     } catch (error) {
         // Handle registration error
         console.error("Registration error:", error);

@@ -26,8 +26,12 @@ import { RouterLink } from "vue-router";
 import { useAuthPromptStore } from "../stores/authPrompt";
 
 const prompt = useAuthPromptStore();
-const loginDestination = computed(() => ({ path: "/login", query: { redirect: prompt.redirect } }));
-const registerDestination = computed(() => ({ path: "/register", query: { redirect: prompt.redirect } }));
+const destinationQuery = computed(() => ({
+    redirect: prompt.productId ? "/cart" : prompt.redirect,
+    ...(prompt.productId ? { cartProductId: prompt.productId, quantity: prompt.quantity } : {}),
+}));
+const loginDestination = computed(() => ({ path: "/login", query: destinationQuery.value }));
+const registerDestination = computed(() => ({ path: "/register", query: destinationQuery.value }));
 
 watch(() => prompt.isOpen, (open) => {
     document.body.style.overflow = open ? "hidden" : "";
