@@ -436,6 +436,7 @@ import { useUserStore } from "../stores/user";
 import { useCartStore } from "../stores/cart";
 import { useWishlistStore } from "../stores/wishlist";
 import { useSnackbarStore } from "../stores/snackbar";
+import { useAuthPromptStore } from "../stores/authPrompt";
 import FeaturedProductCard from "../components/FeaturedProductCard.vue";
 
 import axios from "axios";
@@ -447,6 +448,7 @@ const userStore = useUserStore();
 const cartStore = useCartStore();
 const wishlistStore = useWishlistStore();
 const snackbarStore = useSnackbarStore();
+const authPromptStore = useAuthPromptStore();
 
 const product = ref(null);
 const relatedProducts = ref([]);
@@ -525,7 +527,7 @@ const isInWishlist = computed(() => {
 
 async function addToCart() {
     if (!userStore.isAuthenticated) {
-        router.push("/login");
+        authPromptStore.open(route.fullPath);
         return;
     }
 
