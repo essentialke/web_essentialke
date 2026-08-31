@@ -159,7 +159,7 @@ const buttonLabel = computed(() => {
 
 async function handleAddToCart() {
     if (!userStore.isAuthenticated) {
-        authPromptStore.open(router.currentRoute.value.fullPath);
+        authPromptStore.open(router.currentRoute.value.fullPath, props.product.id, 1);
         return;
     }
     isAdding.value = true;

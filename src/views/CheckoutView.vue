@@ -60,8 +60,8 @@
                         </div>
 
                         <div v-if="selectedDelivery" class="flex justify-between mb-2">
-                            <span class="text-gray-600">Delivery</span>
-                            <span class="font-semibold">KES {{ selectedDelivery.fee.toFixed(2) }}</span>
+                            <span class="text-gray-600">{{ selectedDelivery.isPickup ? 'Store pickup' : 'Delivery' }}</span>
+                            <span class="font-semibold">{{ selectedDelivery.fee === 0 ? 'Free' : `KES ${selectedDelivery.fee.toFixed(2)}` }}</span>
                         </div>
 
                         <hr class="my-2" />
@@ -79,7 +79,7 @@
 
                 <!-- Shipping and Billing Details -->
                 <section class="delivery-panel order-1 lg:col-span-7 lg:order-1">
-                    <div class="panel-heading"><span>01</span><div><h2>Delivery details</h2><p>Choose a destination, then tell us where to deliver.</p></div></div>
+                    <div class="panel-heading"><span>01</span><div><h2>Delivery or pickup</h2><p>Choose delivery to your area or collect your order from our store.</p></div></div>
                     <form @submit.prevent="placeOrder" class="space-y-6 checkout-form">
                         <!-- Shipping Address Form -->
                         <div>
@@ -98,23 +98,23 @@
                         </div>
 
                         <fieldset>
-                            <legend class="block text-sm font-medium text-gray-700">Delivery destination / point</legend>
+                            <legend class="block text-sm font-medium text-gray-700">Delivery method</legend>
                             <div class="delivery-options">
                                 <label v-for="option in deliveryOptions" :key="option.id" class="delivery-option" :class="{ selected: shippingDetails.deliveryDestination === option.id }">
                                     <input v-model="shippingDetails.deliveryDestination" type="radio" name="deliveryDestination" :value="option.id" required />
-                                    <span><b>{{ option.label }}</b><small>Standard delivery</small></span><strong>KES {{ option.fee }}</strong>
+                                    <span><b>{{ option.label }}</b><small>{{ option.isPickup ? 'Collect from our store' : 'Standard delivery' }}</small></span><strong>{{ option.fee === 0 ? 'Free' : `KES ${option.fee}` }}</strong>
                                 </label>
                             </div>
                         </fieldset>
 
                         <div>
-                            <label for="deliveryNote" class="block text-sm font-medium text-gray-700">Delivery notes <span class="text-gray-400">(optional)</span></label>
+                            <label for="deliveryNote" class="block text-sm font-medium text-gray-700">{{ selectedDelivery?.isPickup ? 'Pickup notes' : 'Delivery notes' }} <span class="text-gray-400">(optional)</span></label>
                             <textarea
                                 id="deliveryNote"
                                 v-model.trim="shippingDetails.deliveryNote"
                                 rows="3"
                                 maxlength="500"
-                                placeholder="Add a landmark, pickup instructions, or any details that will help with delivery."
+                                :placeholder="selectedDelivery?.isPickup ? 'Add the name of the person collecting, if different.' : 'Add a landmark or any details that will help with delivery.'"
                                 class="mt-1 block w-full border border-gray-300 py-3 px-3 focus:outline-none sm:text-sm"
                             ></textarea>
                         </div>
@@ -398,6 +398,7 @@ const shippingDetails = ref({
 });
 
 const deliveryOptions = [
+    { id: "store-pickup", label: "Pick up from store", fee: 0, country: "Kenya", isPickup: true },
     { id: "mombasa-nairobi-service-area", label: "Mombasa → Nairobi CBD, Westlands, Parklands, Kilimani, South C & South B", fee: 350, country: "Kenya" },
     { id: "nairobi-kilimani-kileleshwa", label: "Nairobi → Kilimani & Kileleshwa", fee: 250, country: "Kenya" },
     { id: "ngong-road", label: "Ngong Road", fee: 200, country: "Kenya" },
@@ -477,7 +478,7 @@ const placeOrder = async () => {
     }
 
     if (!selectedDelivery.value) {
-        snackbarStore.addSnackbar({ message: "Please select a delivery destination.", type: "warning" });
+        snackbarStore.addSnackbar({ message: "Please select delivery or store pickup.", type: "warning" });
         return;
     }
 
