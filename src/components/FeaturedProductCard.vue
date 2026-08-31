@@ -1,13 +1,14 @@
 <script setup>
 import { computed, ref } from "vue";
 import { RouterLink } from "vue-router";
-import { resolveAssetUrl } from "../utils/assetUrl";
+import { createImageSrcSet, resolveAssetUrl } from "../utils/assetUrl";
 const props = defineProps({ product: { type: Object, required: true } });
 const failed = ref(false);
 const imageUrl = computed(() => {
     const path = props.product.coverImageUrl;
-    return resolveAssetUrl(path);
+    return resolveAssetUrl(path, { width: 720 });
 });
+const imageSrcset = computed(() => createImageSrcSet(props.product.coverImageUrl, [240, 360, 540, 720]));
 const isOnSale = computed(() => Number(props.product.salePrice) > 0 && Number(props.product.salePrice) < Number(props.product.price));
 const regularPrice = computed(() => Number(props.product.price || 0).toLocaleString("en-KE"));
 const price = computed(() => Number(isOnSale.value ? props.product.salePrice : props.product.price || 0).toLocaleString("en-KE", { minimumFractionDigits: 0 }));
@@ -18,7 +19,7 @@ const price = computed(() => Number(isOnSale.value ? props.product.salePrice : p
         <RouterLink :to="`/product/${product.id}/${product.slug}`" class="product-image-wrap">
             <span class="badge">{{ isOnSale ? 'Sale' : product.featured ? 'Bestseller' : 'New' }}</span>
             <button class="wish" aria-label="Add to wishlist" @click.prevent>♡</button>
-            <img v-if="imageUrl && !failed" :src="imageUrl" :alt="product.title" @error="failed = true" loading="lazy" />
+            <img v-if="imageUrl && !failed" :src="imageUrl" :srcset="imageSrcset" sizes="(max-width: 520px) 50vw, (max-width: 900px) 50vw, 25vw" :alt="product.title" @error="failed = true" loading="lazy" />
             <div v-else class="image-placeholder"><span>Essential</span></div>
             <span class="quick-view">View piece</span>
         </RouterLink>

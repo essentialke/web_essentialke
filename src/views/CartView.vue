@@ -16,9 +16,12 @@
                 >
                     <div class="flex items-center gap-3 sm:space-x-4 min-w-0">
                         <img
-                            :src="getImageUrl(item.product.coverImageUrl)"
+                            :src="resolveAssetUrl(item.product.coverImageUrl, { width: 192 })"
+                            :srcset="createImageSrcSet(item.product.coverImageUrl, [96, 144, 192])"
+                            sizes="64px"
                             :alt="item.product.title"
                             class="w-16 h-24 object-cover rounded"
+                            loading="lazy"
                         />
                         <div>
                             <h3 class="text-lg font-semibold">
@@ -114,7 +117,7 @@
 <script setup>
 import { useCartStore } from "../stores/cart";
 import { useRouter } from "vue-router";
-import { computed } from "vue";
+import { createImageSrcSet, resolveAssetUrl } from "../utils/assetUrl";
 
 const cartStore = useCartStore();
 const router = useRouter();
@@ -130,15 +133,4 @@ const checkout = () => {
     router.push("/checkout");
 };
 
-const getImageUrl = computed(() => (coverImageUrl) => {
-    if (!coverImageUrl) return "";
-    if (coverImageUrl.startsWith("http")) {
-        return coverImageUrl;
-    } else {
-        const baseUrl = import.meta.env.DEV
-            ? "http://localhost:3000"
-            : import.meta.env.VITE_ASSET_URL;
-        return `${baseUrl}${coverImageUrl}`;
-    }
-});
 </script>

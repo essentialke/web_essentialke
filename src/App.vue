@@ -7,6 +7,7 @@ import { ref, onMounted } from "vue";
 import { useSnackbarStore } from "./stores/snackbar";
 import axios from "axios";
 import LoadingOverlay from "./components/LoadingOverlay.vue";
+import LoginRequiredOverlay from "./components/LoginRequiredOverlay.vue";
 
 const snackbarRef = ref(null);
 const snackbarStore = useSnackbarStore();
@@ -50,5 +51,6 @@ onMounted(async () => {
         <Footer :content="footerContent" />
         <Snackbar />
         <LoadingOverlay />
+        <LoginRequiredOverlay />
     </div>
 </template>

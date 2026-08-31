@@ -163,13 +163,17 @@
                             >
                                 <img
                                     :src="
-                                        getImageUrl(
+                                        resolveAssetUrl(
                                             item.product?.coverImageUrl,
+                                            { width: 360 },
                                         ) || '/placeholder.jpg'
                                     "
+                                    :srcset="createImageSrcSet(item.product?.coverImageUrl, [160, 240, 360])"
+                                    sizes="(max-width: 640px) 100vw, 64px"
                                     class="w-full sm:w-16 h-40 sm:h-24 object-cover rounded border flex-shrink-0"
                                     alt="Product image"
                                     @error="onImageError"
+                                    loading="lazy"
                                 />
                                 <div class="flex-1 min-w-0">
                                     <h4
@@ -223,6 +227,7 @@ import {
     faPen,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { createImageSrcSet, resolveAssetUrl } from "../../utils/assetUrl";
 
 const userStore = useUserStore();
 const orders = ref([]);
@@ -316,18 +321,6 @@ function getStatusClass(status) {
             return "bg-gray-100 text-gray-800";
     }
 }
-
-const getImageUrl = computed(() => (coverImageUrl) => {
-    if (!coverImageUrl) return "/placeholder.jpg";
-    if (coverImageUrl.startsWith("http")) {
-        return coverImageUrl;
-    } else {
-        const baseUrl = import.meta.env.DEV
-            ? "http://localhost:3000"
-            : import.meta.env.VITE_ASSET_URL;
-        return `${baseUrl}${coverImageUrl}`;
-    }
-});
 
 function onImageError(event) {
     event.target.src = "/placeholder.jpg";

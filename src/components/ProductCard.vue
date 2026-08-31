@@ -32,6 +32,8 @@
             >
                 <img
                     :src="imageUrl"
+                    :srcset="imageSrcset"
+                    sizes="(max-width: 520px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     :alt="product.title"
                     class="w-full h-full object-cover shadow-xl transform group-hover:scale-105 transition duration-500 z-[1]"
                     loading="lazy"
@@ -109,16 +111,17 @@
 </template>
 
 <script setup>
-import { RouterLink } from "vue-router";
+import { RouterLink, useRouter } from "vue-router";
 import { useCartStore } from "../stores/cart";
 import { useUserStore } from "../stores/user";
 import { useWishlistStore } from "../stores/wishlist";
 import { useSnackbarStore } from "../stores/snackbar";
+import { useAuthPromptStore } from "../stores/authPrompt";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faCartPlus, faCheck, faHeart } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { computed, ref } from "vue";
-import { resolveAssetUrl } from "../utils/assetUrl";
+import { createImageSrcSet, resolveAssetUrl } from "../utils/assetUrl";
 
 library.add(faCartPlus, faCheck, faHeart);
 
@@ -134,11 +137,14 @@ const props = defineProps({
 });
 
 const cartStore = useCartStore();
+const router = useRouter();
 const userStore = useUserStore();
 const wishlistStore = useWishlistStore();
 const snackbarStore = useSnackbarStore();
+const authPromptStore = useAuthPromptStore();
 
-const imageUrl = computed(() => resolveAssetUrl(props.product.coverImageUrl));
+const imageUrl = computed(() => resolveAssetUrl(props.product.coverImageUrl, { width: 720 }));
+const imageSrcset = computed(() => createImageSrcSet(props.product.coverImageUrl, [240, 360, 540, 720]));
 const isOnSale = computed(() => Number(props.product.salePrice) > 0 && Number(props.product.salePrice) < Number(props.product.price));
 const effectivePrice = computed(() => isOnSale.value ? Number(props.product.salePrice) : Number(props.product.price || 0));
 const discountPercent = computed(() => Math.round((1 - Number(props.product.salePrice) / Number(props.product.price)) * 100));
@@ -153,10 +159,7 @@ const buttonLabel = computed(() => {
 
 async function handleAddToCart() {
     if (!userStore.isAuthenticated) {
-        snackbarStore.addSnackbar({
-            message: "Please login to add items to your cart.",
-            type: "warning",
-        });
+        authPromptStore.open(router.currentRoute.value.fullPath);
         return;
     }
     isAdding.value = true;
