@@ -1,17 +1,25 @@
 <script setup>
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import { RouterLink } from "vue-router";
 import { createImageSrcSet, resolveAssetUrl } from "../../utils/assetUrl";
 
 const props = defineProps({ content: { type: Object, default: null } });
 const slide = computed(() => props.content?.rightSection?.slides?.[0]);
-const heroImage = computed(() =>
-    slide.value?.image
-        ? resolveAssetUrl(slide.value.image, { transform: false })
-        : "/essential-hero.jpg",
+const fallbackImage = "/essential-hero.jpg";
+const useFallbackImage = ref(false);
+const uploadedImage = computed(() => slide.value?.image || "");
+const heroSrc = computed(() =>
+    uploadedImage.value && !useFallbackImage.value
+        ? resolveAssetUrl(uploadedImage.value, { width: 1920 })
+        : fallbackImage,
 );
-const heroSrc = computed(() => resolveAssetUrl(heroImage.value, { width: 1920 }));
-const heroSrcset = computed(() => createImageSrcSet(heroImage.value, [768, 1280, 1920, 2560]));
+const heroSrcset = computed(() =>
+    uploadedImage.value && !useFallbackImage.value
+        ? createImageSrcSet(uploadedImage.value, [768, 1280, 1920, 2560])
+        : undefined,
+);
+watch(uploadedImage, () => { useFallbackImage.value = false; });
+const useFallback = () => { useFallbackImage.value = true; };
 const title = computed(() => {
     const t = props.content?.leftSection?.title;
     const contentTitle = [t?.mainText, t?.highlightedText, t?.endText].filter(Boolean).join(" ");
@@ -38,9 +46,8 @@ const cta = computed(() => ({
 </script>
 
 <template>
-    <section class="hero" :class="{ 'hero-with-image': heroImage }">
+    <section class="hero hero-with-image">
         <img
-            v-if="heroImage"
             :src="heroSrc"
             :srcset="heroSrcset"
             sizes="100vw"
@@ -48,6 +55,7 @@ const cta = computed(() => ({
             class="hero-image"
             fetchpriority="high"
             decoding="async"
+            @error="useFallback"
         />
         <div class="hero-wash"></div>
         <div class="hero-content">
