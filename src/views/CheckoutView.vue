@@ -378,6 +378,38 @@
                 </div>
             </div>
         </div>
+
+        <Teleport to="body">
+            <div
+                v-if="paymentStatus === 'COMPLETED'"
+                class="payment-success-overlay"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="payment-success-title"
+                aria-describedby="payment-success-copy"
+            >
+                <section class="payment-success-panel">
+                    <div class="payment-success-mark" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="m6.5 12.5 3.5 3.5 7.5-8" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <p class="payment-success-kicker">Payment confirmed</p>
+                    <h2 id="payment-success-title">Your order is complete</h2>
+                    <p id="payment-success-copy" class="payment-success-copy">
+                        Thank you for shopping with Essential. You can track your order from your account or continue exploring our jewelry.
+                    </p>
+                    <div class="payment-success-actions">
+                        <button type="button" class="payment-success-primary" autofocus @click="goToOrders">
+                            View my orders
+                        </button>
+                        <button type="button" class="payment-success-secondary" @click="continueShopping">
+                            Continue shopping
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </Teleport>
     </div>
 </template>
 
@@ -646,10 +678,6 @@ const checkPaymentStatus = async (id) => {
                     type: "success",
                 });
 
-                // Redirect after 5 seconds
-                setTimeout(() => {
-                    goToOrders();
-                }, 5000);
             } else if (response.data.status === "FAILED") {
                 statusMessage.value = "Payment failed. Please try again.";
                 paymentError.value =
@@ -692,6 +720,10 @@ const goToOrders = () => {
     router.push("/dashboard");
 };
 
+const continueShopping = () => {
+    router.push("/products");
+};
+
 const isPhoneNumberValid = computed(() => {
     const phone = shippingDetails.value.phoneNumber;
     if (!phone) return true; // Don't show error when empty
@@ -722,5 +754,10 @@ onUnmounted(() => {
 .checkout-page{max-width:1280px}.checkout-header{margin:0 auto 48px;text-align:center}.checkout-kicker{margin-bottom:9px;color:#9a7c50;font-size:9px;font-weight:650;letter-spacing:.25em;text-transform:uppercase}.checkout-header h1{font-family:'GFS Didot',Georgia,serif;font-size:clamp(38px,5vw,58px);font-weight:400;line-height:1}.checkout-steps{display:flex;align-items:center;justify-content:center;max-width:470px;margin:28px auto 0;color:#9a948c}.checkout-steps span{display:flex;align-items:center;gap:8px;font-size:11px}.checkout-steps span:first-letter{font-weight:700}.checkout-steps b{font-size:9px;letter-spacing:.13em;text-transform:uppercase}.checkout-steps i{width:72px;height:1px;margin:0 14px;background:#ddd4c7}.checkout-steps .complete,.checkout-steps .active{color:#8d7047}.checkout-steps .active{font-weight:700}.order-summary,.delivery-panel{border:1px solid #e7e0d6;background:#fff;box-shadow:0 14px 36px rgba(53,44,34,.07)}.order-summary{position:sticky;top:128px;padding:30px}.delivery-panel{padding:clamp(24px,4vw,42px)}.summary-heading,.panel-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:28px}.summary-heading p{color:#9a7c50;font-size:8px;font-weight:600;letter-spacing:.2em;text-transform:uppercase}.summary-heading h2,.panel-heading h2{font-family:'GFS Didot',Georgia,serif;font-size:28px;font-weight:400}.summary-heading>span{padding:6px 9px;background:#f7f3ed;color:#665f56;font-size:9px;letter-spacing:.1em;text-transform:uppercase}.panel-heading{justify-content:flex-start}.panel-heading>span{display:grid;width:40px;height:40px;flex:0 0 auto;place-items:center;border:1px solid #b08d57;border-radius:50%;color:#8d7047;font-size:10px}.panel-heading p{color:#777;font-size:12px}.checkout-form input:not([type=radio]),.checkout-form select{min-height:46px;border-color:#ddd4c7;border-radius:0;background:#fff;box-shadow:none}.checkout-form input:focus,.checkout-form select:focus{border-color:#a88654;box-shadow:0 0 0 1px #a88654}.delivery-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:9px}.delivery-option{display:flex;min-height:82px;align-items:center;gap:11px;padding:14px;border:1px solid #ddd4c7;background:#fff;cursor:pointer;transition:.2s}.delivery-option:hover,.delivery-option.selected{border-color:#a88654;background:#faf7f2;box-shadow:0 6px 16px rgba(53,44,34,.06)}.delivery-option input{accent-color:#9a7c50}.delivery-option span{min-width:0;flex:1}.delivery-option b,.delivery-option small{display:block}.delivery-option b{font-family:Georgia,serif;font-size:12px;font-weight:500;line-height:1.35}.delivery-option small{margin-top:4px;color:#8a847c;font-size:9px;letter-spacing:.08em;text-transform:uppercase}.delivery-option strong{white-space:nowrap;color:#7f633d;font-size:11px}.checkout-form button[type=submit]{min-height:52px;border-radius:0;background:#1f1f1c;font-size:10px;font-weight:650;letter-spacing:.16em;text-transform:uppercase;transition:.25s}.checkout-form button[type=submit]:hover{background:#9a7c50}.secure-note{margin-top:16px;text-align:center;color:#777;font-size:10px}.order-summary li{padding-bottom:14px;border-bottom:1px solid #eee9e2}.order-summary li:last-child{border-bottom:0}@media(max-width:1023px){.order-summary{position:static}}@media(max-width:640px){.checkout-page{padding-top:28px}.checkout-header{margin-bottom:32px}.checkout-steps b{display:none}.checkout-steps i{width:42px}.delivery-options{grid-template-columns:1fr}.order-summary,.delivery-panel{padding:22px}.panel-heading{align-items:flex-start}}
 .checkout-form button[type=submit]{display:flex;min-height:54px;align-items:center;justify-content:center;padding:0 24px;border-radius:0;background:#1f1f1c;font-size:12px;font-weight:800;line-height:1;letter-spacing:.12em;text-transform:uppercase;transition:.25s}
 .checkout-actions{display:grid;gap:10px}.checkout-actions button{display:flex;width:100%;min-height:54px;align-items:center;justify-content:center;gap:10px;padding:0 24px;border-radius:0;font-size:12px;font-weight:800;line-height:1;letter-spacing:.12em;text-transform:uppercase;transition:.25s}.primary-checkout-action{border:1px solid #1f1f1c;color:#fff}.whatsapp-checkout-action{border:1px solid #1f1f1c;background:#fff;color:#1f1f1c}.whatsapp-checkout-action:hover:not(:disabled){border-color:#1f8f55;background:#f0faf4;color:#167344}.whatsapp-checkout-action svg{width:19px;height:19px;flex:0 0 auto}.checkout-actions button:disabled{cursor:not-allowed;opacity:.5}
+.payment-success-overlay{position:fixed;z-index:100;inset:0;display:grid;place-items:center;padding:20px;background:rgba(24,22,18,.68);backdrop-filter:blur(8px)}
+.payment-success-panel{width:min(100%,540px);padding:clamp(32px,6vw,54px);border:1px solid #dcd1c2;background:#fbf9f5;text-align:center;box-shadow:0 30px 80px rgba(20,17,12,.28)}
+.payment-success-mark{display:grid;width:58px;height:58px;margin:0 auto 22px;place-items:center;border:1px solid #8b9a79;border-radius:50%;background:#f0f3eb;color:#647454}.payment-success-mark svg{width:28px;height:28px;stroke-width:1.7}
+.payment-success-kicker{margin-bottom:12px;color:#8c7048;font-size:9px;font-weight:700;letter-spacing:.24em;text-transform:uppercase}.payment-success-panel h2{font:400 clamp(34px,6vw,46px)/1.05 'GFS Didot',Georgia,serif;color:#24221e}.payment-success-copy{max-width:420px;margin:20px auto 30px;color:#6f6961;font-size:13px;line-height:1.75}.payment-success-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.payment-success-actions button{display:flex;min-height:52px;align-items:center;justify-content:center;padding:0 18px;border:1px solid #24221e;font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;transition:.25s}.payment-success-primary{background:#24221e;color:#fff}.payment-success-primary:hover{border-color:#9a7c50;background:#9a7c50}.payment-success-secondary{background:transparent;color:#24221e}.payment-success-secondary:hover{border-color:#9a7c50;color:#8c7048}.payment-success-actions button:focus-visible{outline:2px solid #b08d57;outline-offset:3px}
 @media(max-width:640px){.checkout-page{padding-top:22px}.checkout-header{margin-bottom:26px}.checkout-header h1{font-size:38px}.checkout-steps{margin-top:20px}.checkout-steps i{width:36px;margin-inline:10px}.order-summary,.delivery-panel{padding:18px}.panel-heading{margin-bottom:22px}.order-summary li{align-items:flex-start;gap:12px}.order-summary li>div{min-width:0}.order-summary li h4{line-height:1.35}.order-summary li>span{text-align:right;white-space:nowrap;font-size:13px}}
+@media(max-width:520px){.payment-success-overlay{padding:14px}.payment-success-panel{padding:32px 22px}.payment-success-actions{grid-template-columns:1fr}.payment-success-actions button{min-height:50px}}
 </style>
