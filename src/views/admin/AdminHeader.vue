@@ -1,10 +1,10 @@
 <template>
-    <header class="bg-white shadow-sm p-4 flex justify-end sticky top-0 z-10">
+    <header class="admin-header p-4 sm:px-8 flex justify-end sticky top-0 z-10">
         <!-- Placeholder for now, you'll add user info, notifications, etc. here -->
         <div class="relative" v-click-outside="closeUserMenu">
             <button
                 @click="toggleUserMenu"
-                class="flex items-center space-x-2 text-gray-700 hover:text-primary"
+                class="admin-user flex items-center space-x-2"
             >
                 <img
                     src="/essential-logo.png"
@@ -30,7 +30,7 @@
 
             <div
                 v-show="isUserMenuOpen"
-                class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50"
+                class="admin-menu absolute right-0 mt-2 w-52 bg-white py-1 z-50"
             >
                 <RouterLink
                     to="/admin/change-password"
@@ -97,3 +97,9 @@ const handleLogout = async () => {
     }
 };
 </script>
+
+<style scoped>
+.admin-header{border-bottom:1px solid #e5ddd2;background:rgba(251,249,245,.96);box-shadow:none;backdrop-filter:blur(12px)}
+.admin-user{color:#514c45;font-size:.65rem;font-weight:650;letter-spacing:.12em;text-transform:uppercase}.admin-user:hover{color:#9a7c50}
+.admin-menu{border:1px solid #dfd5c8;border-radius:0;box-shadow:0 16px 35px rgba(50,41,31,.12)}
+</style>

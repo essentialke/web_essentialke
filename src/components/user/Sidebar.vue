@@ -1,14 +1,14 @@
 <template>
     <aside
-        class="bg-white shadow-md h-full"
+        class="account-sidebar h-full"
         :class="{
             'w-64': !isMobile,
             'w-full fixed z-40': isMobile && isSidebarOpen,
             hidden: isMobile && !isSidebarOpen,
         }"
     >
-        <div class="flex items-center justify-between p-4 border-b">
-            <h2 class="text-lg font-semibold text-gray-800">Dashboard</h2>
+        <div class="sidebar-heading flex items-center justify-between p-5 border-b">
+            <div><span>Essential</span><h2>My account</h2></div>
             <button
                 v-if="isMobile"
                 @click="$emit('close-sidebar')"
@@ -35,10 +35,9 @@
                 v-for="item in menuItems"
                 :key="item.path"
                 :to="item.path"
-                class="flex items-center space-x-3 p-2 rounded-lg transition-colors duration-200"
+                class="account-link flex items-center space-x-3 p-3 transition-colors duration-200"
                 :class="{
-                    'bg-primary text-white': isActive(item.path),
-                    'hover:bg-gray-100 text-gray-700': !isActive(item.path),
+                    active: isActive(item.path),
                 }"
                 @click="closeSidebarIfMobile"
             >
@@ -48,7 +47,7 @@
 
             <button
                 type="button"
-                class="flex w-full items-center space-x-3 rounded-lg p-2 text-red-600 transition-colors duration-200 hover:bg-red-50"
+                class="logout-link flex w-full items-center space-x-3 p-3 transition-colors duration-200"
                 @click="logout"
             >
                 <font-awesome-icon :icon="['fas', 'sign-out-alt']" class="w-5 h-5" />
@@ -125,3 +124,11 @@ onUnmounted(() => {
     window.removeEventListener("resize", handleResize);
 });
 </script>
+
+<style scoped>
+.account-sidebar{border-right:1px solid #e5ddd2;background:#fbf9f5;color:#514c45;box-shadow:none}
+.sidebar-heading{border-color:#e5ddd2}.sidebar-heading span{display:block;margin-bottom:.25rem;color:#9a7c50;font-size:.52rem;font-weight:650;letter-spacing:.24em;text-transform:uppercase}.sidebar-heading h2{font:400 1.45rem 'GFS Didot',Georgia,serif;color:#24221e}
+.account-link,.logout-link{border-radius:0;font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+.account-link{border-left:2px solid transparent;color:#655f57}.account-link:hover{background:#f2ece3;color:#24221e}.account-link.active{border-left-color:#b08d57;background:#ebe2d6;color:#24221e}
+.logout-link{margin-top:1rem;border-top:1px solid #e5ddd2;color:#93594d}.logout-link:hover{background:#f4e8e4}
+</style>

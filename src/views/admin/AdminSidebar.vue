@@ -5,7 +5,7 @@
             '-translate-x-full': !isOpen,
             'md:translate-x-0': true,
         }"
-        class="bg-gray-800 text-white w-64 min-h-screen p-4 fixed md:sticky top-0 z-30 transition-transform duration-300 ease-in-out"
+        class="admin-sidebar text-white w-64 min-h-screen p-4 fixed md:sticky top-0 z-30 transition-transform duration-300 ease-in-out"
     >
         <div class="flex items-center justify-between mb-6">
             <div class="flex items-center">
@@ -14,7 +14,7 @@
                     alt="Essential logo"
                     class="h-8 w-auto mr-2"
                 />
-                <h1 class="text-lg font-bold">Admin Panel</h1>
+                <div><span class="brand-kicker">Essential</span><h1 class="brand-title">Studio admin</h1></div>
             </div>
             <!-- Close button for mobile -->
             <button
@@ -41,9 +41,9 @@
                 <li v-for="link in links" :key="link.to">
                     <RouterLink
                         :to="link.to"
-                        class="flex items-center p-2 rounded-lg hover:bg-gray-700"
+                        class="admin-link flex items-center p-3"
                         :class="{
-                            'bg-gray-700': isActive(link.to),
+                            active: isActive(link.to),
                         }"
                         @click="$emit('close')"
                     >
@@ -104,3 +104,9 @@ const isActive = (path) => {
     return route.path === path;
 };
 </script>
+
+<style scoped>
+.admin-sidebar{background:#24231f;border-right:1px solid #3c3933;box-shadow:10px 0 30px rgba(20,18,14,.08)}
+.brand-kicker{display:block;color:#c2a36e;font-size:.48rem;font-weight:650;letter-spacing:.24em;text-transform:uppercase}.brand-title{font:400 1.2rem 'GFS Didot',Georgia,serif;color:#f7f3ed}
+.admin-link{border-left:2px solid transparent;color:#c9c3b9;font-size:.67rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;transition:.2s}.admin-link:hover{background:#302e29;color:#fff}.admin-link.active{border-left-color:#c2a36e;background:#35322c;color:#fff}
+</style>

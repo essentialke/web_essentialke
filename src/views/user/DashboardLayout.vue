@@ -1,5 +1,5 @@
 <template>
-    <div class="flex min-h-[calc(100dvh-4rem)] bg-gray-50">
+    <div class="account-shell flex min-h-[calc(100dvh-4rem)]">
         <!-- Sidebar -->
         <UserSidebar
             :isSidebarOpen="isSidebarOpen"
@@ -8,7 +8,7 @@
 
         <!-- Content Area -->
         <div class="flex-1 flex flex-col overflow-hidden">
-            <header class="bg-white shadow-sm p-4">
+            <header class="account-header p-4 sm:px-8 sm:py-5">
                 <div
                     class="container mx-auto flex justify-between items-center"
                 >
@@ -33,15 +33,15 @@
                     </button>
 
                     <!-- Page Title -->
-                    <h1 class="text-xl font-semibold text-gray-900">
+                    <h1 class="account-title">
                         {{ pageTitle }}
                     </h1>
                 </div>
             </header>
 
             <!-- Main Content -->
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
-                <div class="container mx-auto p-3 sm:p-6">
+            <main class="account-main flex-1 overflow-x-hidden overflow-y-auto">
+                <div class="account-content container mx-auto p-4 sm:p-8 lg:p-10">
                     <RouterView />
                 </div>
             </main>
@@ -93,3 +93,18 @@ onMounted(() => {
     }
 });
 </script>
+
+<style scoped>
+.account-shell { background:#f7f3ed; color:#302d29; font-family:'Geist',sans-serif }
+.account-header { position:sticky;top:0;z-index:20;border-bottom:1px solid #e5ddd2;background:rgba(251,249,245,.96);backdrop-filter:blur(12px) }
+.account-title { font:400 clamp(1.65rem,3vw,2.25rem)/1.1 'GFS Didot',Georgia,serif;letter-spacing:-.015em;color:#24221e }
+.account-main { background:linear-gradient(180deg,#f8f5f0 0,#f3eee7 100%) }
+.account-content { max-width:1280px }
+.account-content :deep(h1),.account-content :deep(h2),.account-content :deep(h3){font-family:'GFS Didot',Georgia,serif;font-weight:400;color:#28251f}
+.account-content :deep(.bg-white){border:1px solid #e5ddd2;box-shadow:0 12px 32px rgba(55,46,36,.055)}
+.account-content :deep(input),.account-content :deep(textarea),.account-content :deep(select){border-color:#dcd2c5;border-radius:0;background:#fff;box-shadow:none;min-height:46px}
+.account-content :deep(input:focus),.account-content :deep(textarea:focus),.account-content :deep(select:focus){border-color:#a88654;box-shadow:0 0 0 1px #a88654;outline:none}
+.account-content :deep(button[type="submit"]){min-height:48px;border-radius:0;background:#24221e;font-size:.68rem;font-weight:650;letter-spacing:.14em;text-transform:uppercase;transition:.25s}
+.account-content :deep(button[type="submit"]:hover){background:#9a7c50}
+@media(max-width:767px){.account-header{padding-left:1rem}.account-title{margin-left:.75rem}}
+</style>
