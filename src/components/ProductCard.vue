@@ -9,7 +9,7 @@
             <!-- Wishlist Button - Outside RouterLink -->
             <button
                 @click="handleAddToWishlist"
-                class="absolute top-4 right-4 z-10 p-2 bg-white/90 rounded-full hover:bg-white transition-all duration-200 shadow-sm"
+                class="wishlist-button absolute top-4 right-4 z-10 bg-white/90 rounded-full hover:bg-white transition-all duration-200 shadow-sm"
                 :class="
                     wishlistStore.isInWishlist(product.id)
                         ? 'text-red-500'
@@ -17,7 +17,7 @@
                 "
                 title="Add to Wishlist"
             >
-                <font-awesome-icon :icon="['fas', 'heart']" class="text-lg" />
+                <font-awesome-icon :icon="['fas', 'heart']" class="wishlist-icon text-lg" />
             </button>
 
             <RouterLink
@@ -35,7 +35,7 @@
                     :srcset="imageSrcset"
                     sizes="(max-width: 520px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     :alt="product.title"
-                    class="w-full h-full object-cover shadow-xl transform group-hover:scale-105 transition duration-500 z-[1]"
+                    class="product-cover-image w-full h-full object-cover shadow-xl transform group-hover:scale-105 transition duration-500 z-[1]"
                     loading="lazy"
                 />
             </div>
@@ -220,6 +220,21 @@ async function handleAddToWishlist() {
     background-color: #f3f4f6; /* Fallback color */
 }
 
+.wishlist-button {
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.wishlist-icon {
+    display: block;
+    flex: none;
+}
+
 /* Blur effect for background image */
 .blur-effect {
     filter: blur(15px);
@@ -299,5 +314,37 @@ async function handleAddToWishlist() {
 .add-cart-button.is-added { background:#536646;border-color:#536646 }
 .add-cart-button.is-disabled { background:#dedbd5;border-color:#dedbd5;color:#77736c;box-shadow:none;cursor:not-allowed }
 .product-card--compact .add-cart-button { min-width:8.75rem;padding:.65rem .85rem;font-size:.75rem }
-@media(max-width:520px){.product-card-price{font-size:.75rem}.product-card-price b{overflow-wrap:anywhere}.add-cart-button,.product-card--compact .add-cart-button{width:100%;min-width:0;min-height:44px;padding:.65rem .5rem;font-size:.7rem}.product-cover-container>button{top:.5rem;right:.5rem;display:grid;width:44px;height:44px;padding:0}.sale-badge{left:8px;top:8px}}
+@media (max-width: 520px) {
+    .product-cover-container,
+    .product-card--compact .product-cover-container {
+        aspect-ratio: 1 / 1;
+        background: #f8f7f4;
+    }
+
+    .product-cover-image {
+        object-fit: contain;
+        padding: 0.35rem;
+        box-shadow: none;
+    }
+
+    .product-card-price { font-size: .75rem; }
+    .product-card-price b { overflow-wrap: anywhere; }
+    .add-cart-button,
+    .product-card--compact .add-cart-button {
+        width: 100%;
+        min-width: 0;
+        min-height: 44px;
+        padding: .65rem .5rem;
+        font-size: .7rem;
+    }
+    .product-cover-container > .wishlist-button,
+    .product-card--compact .product-cover-container > .wishlist-button {
+        top: .5rem;
+        right: .5rem;
+        width: 2.5rem;
+        height: 2.5rem;
+        padding: 0;
+    }
+    .sale-badge { left: 8px; top: 8px; }
+}
 </style>

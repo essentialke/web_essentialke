@@ -771,18 +771,24 @@ watch(
 }
 
 .product-image-card {
-    background: #fff;
-    box-shadow: 0 18px 45px rgba(53, 44, 34, 0.1);
+    position: relative;
+    background: #eee9e1;
+    border-color: rgba(176, 141, 87, 0.22);
+    box-shadow: 0 22px 54px rgba(53, 44, 34, 0.13);
     aspect-ratio: 4 / 5;
     max-height: 610px;
 }
 
 .product-detail-image {
+    display: block;
     width: 100%;
     height: 100%;
-    object-fit: contain;
-    background: #f7f3ed;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 700ms cubic-bezier(0.2, 0.6, 0.3, 1);
 }
+
+.product-image-card:hover .product-detail-image { transform: scale(1.015); }
 
 .review-card {
     border-bottom-color: #b08d57;

@@ -2,16 +2,17 @@
     <transition-group
         name="snackbar-list"
         tag="div"
-        class="fixed bottom-3 left-3 right-3 sm:left-auto sm:bottom-4 sm:right-4 z-50 space-y-2"
+        class="toast-stack fixed bottom-3 left-3 right-3 sm:left-auto sm:bottom-6 sm:right-6 z-50 space-y-3"
     >
         <div
             v-for="snackbar in snackbarStore.snackbars"
             :key="snackbar.id"
-            class="snackbar-item flex flex-col w-full sm:w-80 max-w-full rounded-lg shadow-lg overflow-hidden"
+            class="snackbar-item flex flex-col w-full sm:w-[22rem] max-w-full overflow-hidden"
             :class="getSnackbarClasses(snackbar)"
         >
-            <div class="flex items-center justify-between px-4 py-3">
-                <div class="flex items-center space-x-2">
+            <div class="flex items-center justify-between gap-4 px-4 py-4">
+                <div class="flex min-w-0 items-center gap-3">
+                    <span class="toast-icon" aria-hidden="true">
                     <font-awesome-icon
                         v-if="snackbar.type === 'success'"
                         :icon="['fas', 'check-circle']"
@@ -27,14 +28,16 @@
                         :icon="['fas', 'times-circle']"
                         class="text-lg"
                     />
-                    <span class="text-sm font-medium">{{
+                    </span>
+                    <span class="toast-message">{{
                         snackbar.message
                     }}</span>
                 </div>
                 <button
                     v-if="snackbar.dismissable"
                     @click="dismissSnackbar(snackbar.id)"
-                    class="text-gray-500 hover:text-gray-700 focus:outline-none"
+                    class="toast-close"
+                    aria-label="Dismiss notification"
                 >
                     <font-awesome-icon
                         :icon="['fas', 'times']"
@@ -43,7 +46,7 @@
                 </button>
             </div>
             <div
-                class="h-1 bg-gray-400"
+                class="toast-progress"
                 :style="{ width: snackbar.progress + '%' }"
             ></div>
         </div>
@@ -93,16 +96,15 @@ const dismissSnackbar = (id) => {
 };
 
 const getSnackbarClasses = (snackbar) => {
-    const baseClasses = "text-white";
     switch (snackbar.type) {
         case "success":
-            return `${baseClasses} bg-green-500`;
+            return "toast-success";
         case "warning":
-            return `${baseClasses} bg-yellow-500`;
+            return "toast-warning";
         case "error":
-            return `${baseClasses} bg-red-500`;
+            return "toast-error";
         default:
-            return `${baseClasses} bg-gray-700`;
+            return "toast-info";
     }
 };
 
@@ -128,6 +130,43 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.snackbar-item {
+    --toast-accent: #9a7c50;
+    border: 1px solid #ded5c9;
+    border-left: 3px solid var(--toast-accent);
+    border-radius: 0;
+    background: rgba(251, 249, 245, 0.98);
+    color: #302d29;
+    box-shadow: 0 18px 42px rgba(45, 38, 29, 0.16);
+    backdrop-filter: blur(14px);
+}
+
+.toast-success { --toast-accent: #647454; }
+.toast-warning { --toast-accent: #b08d57; }
+.toast-error { --toast-accent: #9a554a; }
+.toast-info { --toast-accent: #766d62; }
+
+.toast-icon {
+    display: inline-flex;
+    width: 2rem;
+    height: 2rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid color-mix(in srgb, var(--toast-accent) 45%, white);
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--toast-accent) 10%, white);
+    color: var(--toast-accent);
+}
+
+.toast-icon svg { width: .85rem; height: .85rem; }
+.toast-message { font: 500 .75rem/1.5 'Geist', sans-serif; letter-spacing: .015em; }
+.toast-close { display:grid;width:2rem;height:2rem;flex:0 0 auto;place-items:center;color:#8c857b;transition:.2s; }
+.toast-close:hover { background:#eee8df;color:#302d29; }
+.toast-close:focus-visible { outline:1px solid #b08d57;outline-offset:2px; }
+.toast-close svg { width:.8rem;height:.8rem; }
+.toast-progress { height:2px;background:var(--toast-accent);transition:width 50ms linear; }
+
 .snackbar-list-enter-active,
 .snackbar-list-leave-active {
     transition: all 0.3s ease-out;
@@ -141,5 +180,10 @@ onUnmounted(() => {
 
 .snackbar-list-move {
     transition: transform 0.3s;
+}
+
+@media (max-width: 520px) {
+    .snackbar-item { box-shadow:0 12px 30px rgba(45,38,29,.14); }
+    .toast-message { font-size:.72rem; }
 }
 </style>

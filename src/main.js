@@ -8,7 +8,6 @@ import { useUserStore } from "./stores/user";
 import { useCartStore } from "./stores/cart";
 import { useWishlistStore } from "./stores/wishlist";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { useLoadingStore } from "./stores/loading";
 
 import {
   faShoppingCart,
@@ -43,36 +42,13 @@ library.add(
 
 axios.defaults.baseURL = import.meta.env.VITE_API_URL;
 
-axios.interceptors.request.use(
-  (config) => {
-    const loadingStore = useLoadingStore();
-    loadingStore.startLoading();
-
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers["Authorization"] = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    const loadingStore = useLoadingStore();
-    loadingStore.stopLoading();
-    return Promise.reject(error);
-  },
-);
-
-axios.interceptors.response.use(
-  (response) => {
-    const loadingStore = useLoadingStore();
-    loadingStore.stopLoading();
-    return response;
-  },
-  (error) => {
-    const loadingStore = useLoadingStore();
-    loadingStore.stopLoading();
-    return Promise.reject(error);
-  },
-);
+axios.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers["Authorization"] = `Bearer ${token}`;
+  }
+  return config;
+});
 
 const app = createApp(App);
 const pinia = createPinia();

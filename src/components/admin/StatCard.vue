@@ -1,10 +1,10 @@
 <template>
     <div
-        class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+        class="stat-card bg-white transition-all duration-300 overflow-hidden"
     >
         <div class="flex items-center p-6">
             <div
-                :class="`rounded-lg mr-4 flex items-center justify-center w-12 h-12 ${getBgColor}`"
+                :class="`stat-icon mr-4 flex items-center justify-center w-12 h-12 ${getBgColor}`"
             >
                 <font-awesome-icon
                     :icon="icon"
@@ -62,3 +62,7 @@ const getBgColor = computed(() => {
     return "bg-gray-50";
 });
 </script>
+
+<style scoped>
+.stat-card{border-radius:0;border-top:2px solid #b08d57}.stat-card:hover{transform:translateY(-2px);box-shadow:0 18px 38px rgba(55,46,36,.1)}.stat-icon{border-radius:50%}.stat-card h3{font-family:'Geist',sans-serif;font-size:.6rem;font-weight:650;letter-spacing:.13em;text-transform:uppercase}.stat-card p{font:400 2rem 'GFS Didot',Georgia,serif}
+</style>
