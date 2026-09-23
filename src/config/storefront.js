@@ -35,7 +35,7 @@ export const DEFAULT_STOREFRONT_CONTENT = {
         { categoryId: 9, description: "Made for the strength that keeps you grounded." },
         { categoryId: 12, description: "A celebration of becoming and beginning again." },
     ],
-    quickNavCategoryIds: [1, 4, 3, 2, 5, 6],
+    quickNavCategoryIds: [1, 4, 3, 2, 7, 6],
     headings: {
         bestSellers: { kicker: "Most loved", title: "Best Sellers" },
         featuredCollections: { kicker: "Jewelry with intention", title: "Stories you can wear" },

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed, watch } from "vue";
+import { ref, onMounted, onBeforeUnmount, computed, watch } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import axios from "axios";
 import ProductCard from "../components/ProductCard.vue";
@@ -92,8 +92,8 @@ onMounted(async () => {
     selectedSortBy.value = route.query.sortBy?.toString() || "";
     selectedSortOrder.value = route.query.sortOrder?.toString() || "asc";
     onSale.value = route.query.onSale === "true";
-    await fetchCategories();
-    await loadProducts();
+    fetchCategories();
+    loadProducts();
 
     // Add event listener to close filter on body click on mobile
     document.body.addEventListener("click", (e) => {
@@ -138,14 +138,14 @@ async function fetchCategories() {
     }
 }
 
+let productRequest;
+let productRequestKey = "";
 async function loadProducts() {
-    isLoading.value = true;
-    try {
-        const response = await axios.get("/products", {
-            params: {
+    const params = {
                 page: currentPage.value,
                 limit: pageSize.value,
                 category: selectedCategory.value,
+                featured: route.query.featured === "true" ? true : undefined,
                 minPrice: minPrice.value,
                 maxPrice: maxPrice.value,
                 author: selectedAuthor.value,
@@ -153,16 +153,30 @@ async function loadProducts() {
                 sortOrder: selectedSortOrder.value,
                 minQuantityShop: 0,
                 onSale: onSale.value || undefined,
-            },
-        });
+    };
+    const requestKey = JSON.stringify(params);
+    if (productRequest && productRequestKey === requestKey) return;
+    productRequest?.abort();
+    const controller = new AbortController();
+    productRequest = controller;
+    productRequestKey = requestKey;
+    isLoading.value = true;
+    try {
+        const response = await axios.get("/products", { params, signal: controller.signal });
+        if (controller.signal.aborted) return;
         products.value = response.data.products;
         totalProducts.value = response.data.total;
     } catch (error) {
+        if (controller.signal.aborted) return;
         console.error("Error loading products:", error);
     } finally {
-        isLoading.value = false;
+        if (productRequest === controller) {
+            isLoading.value = false;
+            productRequest = null;
+        }
     }
 }
+onBeforeUnmount(() => productRequest?.abort());
 
 function goToPage(page) {
     if (page === "..." || page < 1 || page > totalPages.value) return;

@@ -3,7 +3,6 @@ export const DEFAULT_CATEGORIES = [
     { id: 2, name: "Rings", slug: "rings", parentId: null, status: "active" },
     { id: 3, name: "Bracelets", slug: "bracelets", parentId: null, status: "active" },
     { id: 4, name: "Earrings", slug: "earrings", parentId: null, status: "active" },
-    { id: 5, name: "Chains", slug: "chains", parentId: null, status: "active" },
     { id: 6, name: "Gift Sets", slug: "gift-sets", parentId: null, status: "active" },
     { id: 7, name: "Stickers", slug: "stickers", parentId: null, status: "active" },
     { id: 8, name: "Collections", slug: "collections", parentId: null, status: "active" },
@@ -15,10 +14,16 @@ export const DEFAULT_CATEGORIES = [
     { id: 14, name: "Initial Collection", slug: "initial", parentId: 8, status: "active" },
     { id: 15, name: "Dainty Collection", slug: "dainty", parentId: 8, status: "active" },
     { id: 16, name: "Meaningful Collection", slug: "meaningful", parentId: 8, status: "active" },
+    { id: 17, name: "Men", slug: "mens-necklaces", parentId: 1, status: "active" },
+    { id: 18, name: "Women", slug: "womens-necklaces", parentId: 1, status: "active" },
 ];
 
 export const copyDefaultCategories = () =>
     DEFAULT_CATEGORIES.map((category) => ({ ...category }));
+
+// Also hide legacy Chains entries returned by saved CMS catalogs.
+export const isStorefrontCategory = (category) => category?.status === "active" &&
+    ![category.slug, category.name].some(value => /^chains?$/i.test(value?.trim() || ""));
 
 export const activeLeafCategories = (categories) =>
     categories.filter(
