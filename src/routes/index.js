@@ -159,6 +159,16 @@ const routes = [
         component: AdminProducts,
       },
       {
+        path: "categories",
+        name: "AdminCategories",
+        component: () => import("../views/admin/AdminCategories.vue"),
+      },
+      {
+        path: "content",
+        name: "AdminContent",
+        component: () => import("../views/admin/AdminContentView.vue"),
+      },
+      {
         path: "transactions",
         component: AdminTransactions,
       },

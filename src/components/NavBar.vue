@@ -1,101 +1,89 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
-import { RouterLink, useRouter } from "vue-router";
-import { useUserStore } from "../stores/user";
-import { useCartStore } from "../stores/cart";
-import { useWishlistStore } from "../stores/wishlist";
-import axios from "axios";
-import {
-    collectionCategories,
-    copyDefaultCategories,
-} from "../config/catalog";
-
+import { ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue';
+import { RouterLink, useRouter } from 'vue-router';
+import { useUserStore } from '../stores/user';
+import { useCartStore } from '../stores/cart';
+import { useWishlistStore } from '../stores/wishlist';
+import CategoryMenuBranch from './CategoryMenuBranch.vue';
+import { copyDefaultCategories, isStorefrontCategory } from '../config/catalog';
+import axios from 'axios';
 const router = useRouter();
-const userStore = useUserStore();
-const cartStore = useCartStore();
-const wishlistStore = useWishlistStore();
-const menuOpen = ref(false);
-const searchOpen = ref(false);
-const collectionsOpen = ref(false);
-const searchQuery = ref("");
-
-const nav = [
-    { name: "New", path: "/products?sortBy=createdAt&sortOrder=desc" },
-    { name: "All Jewelry", path: "/products" },
-    { name: "Best Sellers", path: "/products?featured=true" },
-    { name: "Collections", path: "/products", dropdown: true },
-    { name: "Stickers", path: "/products?category=Stickers" },
-    { name: "Gifting", path: "/gifting" },
-    { name: "Sale", path: "/products?onSale=true" },
-];
-
-const collections = ref(collectionCategories(copyDefaultCategories()));
-
-const collectionPath = (name) => ({
-    path: "/products",
-    query: { category: name },
+const userStore = useUserStore(), cartStore = useCartStore(), wishlistStore = useWishlistStore();
+const header = ref(null), menuOpen = ref(false), searchOpen = ref(false), searchQuery = ref('');
+const openDropdown = ref(null), selectedId = ref(null), categories = ref(copyDefaultCategories());
+const nav = [{ name: 'Shop' }, { name: 'Best Sellers', path: '/products?featured=true' }, { name: 'Gifts' }, { name: 'Collections' }];
+const tree = computed(() => {
+    const active = categories.value.filter(isStorefrontCategory);
+    const branch = (parentId, seen = new Set()) => active.filter(c => c.parentId === parentId && !seen.has(c.id)).map(c => ({ ...c, children: branch(c.id, new Set([...seen, c.id])) }));
+    return branch(null);
 });
-
-async function fetchCollections() {
-    try {
-        const response = await axios.get("/contents/categories");
-        const configuredCollections = collectionCategories(
-            response.data?.content?.categories || [],
-        );
-        if (configuredCollections.length) collections.value = configuredCollections;
-    } catch (error) {
-        console.warn("Using default collection navigation.", error);
-    }
-}
-
-function submitSearch() {
-    if (searchQuery.value.trim()) router.push({ path: "/search", query: { q: searchQuery.value.trim() } });
-    searchOpen.value = false;
-    collectionsOpen.value = false;
-    menuOpen.value = false;
-}
-
-function closeMenus() {
-    menuOpen.value = false;
-    searchOpen.value = false;
-    document.body.style.overflow = "";
-}
-
-function toggleMenu() {
-    menuOpen.value = !menuOpen.value;
-    document.body.style.overflow = menuOpen.value ? "hidden" : "";
-}
-
-const onKey = (e) => e.key === "Escape" && closeMenus();
-onMounted(() => {
-    document.addEventListener("keydown", onKey);
-    fetchCollections();
+const rootsFor = name => name === 'Shop' ? tree.value : tree.value.filter(c => name === 'Collections' ? c.slug === 'collections' : ['gifts', 'gifting', 'gift-sets'].includes(c.slug));
+const selected = computed(() => tree.value.find(c => c.id === selectedId.value));
+const categoryPath = name => ({ path: '/products', query: { category: name } });
+function toggleCategory(id) { selectedId.value = selectedId.value === id ? null : id; }
+async function enterCategory(id) { selectedId.value = id; await nextTick(); header.value?.querySelector('#shop-subcategories a')?.focus(); }
+function toggleDropdown(name) { openDropdown.value = openDropdown.value === name ? null : name; selectedId.value = null; searchOpen.value = false; }
+function closeMenus() { menuOpen.value = false; searchOpen.value = false; openDropdown.value = null; selectedId.value = null; document.body.style.overflow = ''; }
+function toggleMenu() { const next = !menuOpen.value; closeMenus(); menuOpen.value = next; document.body.style.overflow = next ? 'hidden' : ''; }
+function toggleSearch() { const next = !searchOpen.value; closeMenus(); searchOpen.value = next; }
+function submitSearch() { if (searchQuery.value.trim()) router.push({ path: '/search', query: { q: searchQuery.value.trim() } }); closeMenus(); }
+function onKey(e) { if (e.key === 'Escape') { const trigger = header.value?.querySelector('[data-nav-trigger][aria-expanded="true"]'); closeMenus(); trigger?.focus(); } }
+const onOutside = e => { if (!header.value?.contains(e.target)) closeMenus(); };
+const onFocusOut = e => { if (!header.value?.contains(e.relatedTarget)) openDropdown.value = null; };
+const removeRouteHook = router.afterEach(closeMenus);
+onMounted(async () => {
+    document.addEventListener('keydown', onKey); document.addEventListener('pointerdown', onOutside);
+    try { const response = await axios.get('/contents/categories'); if (Array.isArray(response.data?.content?.categories)) categories.value = response.data.content.categories; }
+    catch (error) { console.warn('Using default category navigation.', error); }
 });
-onBeforeUnmount(() => document.removeEventListener("keydown", onKey));
-router.afterEach(closeMenus);
+onBeforeUnmount(() => { document.removeEventListener('keydown', onKey); document.removeEventListener('pointerdown', onOutside); removeRouteHook(); document.body.style.overflow = ''; });
 </script>
-
 <template>
-    <header class="site-header">
-        <div class="header-main">
-            <RouterLink to="/" class="wordmark" aria-label="Essential home">
-                <img src="/essential-logo.png" alt="Essential" />
-            </RouterLink>
-
-            <nav class="desktop-nav hidden md:flex">
-                <template v-for="item in nav" :key="item.name">
-                    <div v-if="item.dropdown" class="nav-dropdown">
-                        <RouterLink :to="item.path" class="dropdown-trigger">{{ item.name }} <span aria-hidden="true"></span></RouterLink>
-                        <div class="dropdown-panel">
-                            <RouterLink v-for="collection in collections" :key="collection.id" :to="collectionPath(collection.name)">{{ collection.name }}</RouterLink>
-                        </div>
+<header ref="header" class="site-header" @focusout="onFocusOut">
+    <div class="header-main">
+        <RouterLink to="/" class="wordmark" aria-label="Essential home"><img src="/essential-logo.png" alt="Essential" /></RouterLink>
+        <nav class="desktop-nav" aria-label="Main navigation">
+            <template v-for="item in nav" :key="item.name">
+                <RouterLink v-if="item.path" :to="item.path">{{ item.name }}</RouterLink>
+                <div v-else class="nav-dropdown">
+                    <button type="button" class="dropdown-trigger" data-nav-trigger :aria-expanded="openDropdown === item.name" :aria-controls="'desktop-' + item.name" @click="toggleDropdown(item.name)">{{ item.name }} <span aria-hidden="true"></span></button>
+                    <div v-if="openDropdown === item.name" :id="'desktop-' + item.name" class="mega-panel" :class="{ 'shop-panel': item.name === 'Shop' }">
+                        <template v-if="item.name === 'Shop'">
+                            <div class="category-column">
+                                <p class="menu-eyebrow">Browse the shop</p>
+                                <div class="shop-shortcuts">
+                                    <RouterLink to="/products">Shop all <span aria-hidden="true">&#8599;</span></RouterLink>
+                                    <RouterLink to="/products?sortBy=createdAt&sortOrder=desc">New releases</RouterLink>
+                                </div>
+                                <p class="menu-eyebrow category-label">Categories</p>
+                                <template v-for="category in tree" :key="category.id">
+                                    <button v-if="category.children.length" type="button" :class="{ selected: selectedId === category.id }" :aria-expanded="selectedId === category.id" aria-controls="shop-subcategories" @click="toggleCategory(category.id)" @keydown.right.prevent="enterCategory(category.id)">{{ category.name }} <svg class="category-chevron" :class="{ expanded: selectedId === category.id }" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" /></svg></button>
+                                    <RouterLink v-else :to="categoryPath(category.name)">{{ category.name }}</RouterLink>
+                                </template>
+                            </div>
+                            <div id="shop-subcategories" class="subcategory-column">
+                                <template v-if="selected">
+                                    <p class="menu-eyebrow">Explore</p>
+                                    <h2 class="submenu-title">{{ selected.name }}</h2>
+                                    <RouterLink class="all-category" :to="categoryPath(selected.name)">Shop all {{ selected.name }} <span aria-hidden="true">&#8594;</span></RouterLink>
+                                    <CategoryMenuBranch :key="selected.id" :categories="selected.children" />
+                                </template>
+                                <div v-else class="menu-intro"><p class="menu-eyebrow">Made to be yours</p><h2 class="submenu-title">Find your everyday<br>favourite.</h2><p class="menu-hint">Explore our jewelry by category.<br>Open an arrow to discover more.</p></div>
+                            </div>
+                        </template>
+                        <template v-else>
+                            <p class="menu-eyebrow">Discover</p>
+                            <h2 class="submenu-title">{{ item.name }}</h2>
+                            <RouterLink v-if="item.name === 'Gifts'" class="all-category" to="/gifting">Explore Gifts</RouterLink>
+                            <CategoryMenuBranch :categories="rootsFor(item.name)" />
+                            <p v-if="item.name === 'Collections' && !rootsFor(item.name).length" class="menu-hint">Collections coming soon.</p>
+                        </template>
                     </div>
-                    <RouterLink v-else :to="item.path">{{ item.name }}</RouterLink>
-                </template>
-            </nav>
-
+                </div>
+            </template>
+        </nav>
             <div class="header-side header-icons min-w-0 shrink-0">
-                <button @click="searchOpen = !searchOpen" aria-label="Search">
+                <button @click="toggleSearch" aria-label="Search">
                     <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
                 </button>
                 <RouterLink :to="userStore.isAuthenticated ? '/dashboard/profile' : '/login'" aria-label="Account">
@@ -115,25 +103,26 @@ router.afterEach(closeMenus);
             </div>
         </div>
 
-        <form v-if="searchOpen" @submit.prevent="submitSearch" class="search-drawer">
-            <input v-model="searchQuery" autofocus placeholder="Search the collection" aria-label="Search the collection" />
-            <button type="submit">Search</button>
-        </form>
 
-        <nav v-if="menuOpen" class="mobile-nav w-full max-h-[calc(100dvh-4rem)] overflow-y-auto md:hidden" aria-label="Mobile navigation">
-            <template v-for="item in nav" :key="item.name">
-                <div v-if="item.dropdown" class="mobile-collections">
-                    <button @click="collectionsOpen = !collectionsOpen" :aria-expanded="collectionsOpen">{{ item.name }} <span>{{ collectionsOpen ? '−' : '+' }}</span></button>
-                    <div v-if="collectionsOpen" class="mobile-collection-links">
-                        <RouterLink v-for="collection in collections" :key="collection.id" :to="collectionPath(collection.name)">{{ collection.name }}</RouterLink>
-                    </div>
+    <form v-if="searchOpen" @submit.prevent="submitSearch" class="search-drawer">
+        <input v-model="searchQuery" autofocus placeholder="Search the collection" aria-label="Search the collection" /><button type="submit">Search</button>
+    </form>
+    <nav v-if="menuOpen" class="mobile-nav" aria-label="Mobile navigation">
+        <template v-for="item in nav" :key="item.name">
+            <RouterLink v-if="item.path" :to="item.path">{{ item.name }}</RouterLink>
+            <div v-else class="mobile-collections">
+                <button type="button" data-nav-trigger @click="toggleDropdown(item.name)" :aria-expanded="openDropdown === item.name" :aria-controls="'mobile-' + item.name">{{ item.name }} <span aria-hidden="true">{{ openDropdown === item.name ? '-' : '+' }}</span></button>
+                <div v-if="openDropdown === item.name" :id="'mobile-' + item.name" class="mobile-category-panel">
+                    <template v-if="item.name === 'Shop'"><RouterLink to="/products">Shop All</RouterLink><RouterLink to="/products?sortBy=createdAt&sortOrder=desc">New Releases</RouterLink></template>
+                    <RouterLink v-if="item.name === 'Gifts'" to="/gifting">Explore Gifts</RouterLink>
+                    <CategoryMenuBranch :categories="rootsFor(item.name)" />
+                    <p v-if="item.name === 'Collections' && !rootsFor(item.name).length">Collections coming soon.</p>
                 </div>
-                <RouterLink v-else :to="item.path">{{ item.name }}</RouterLink>
-            </template>
-        </nav>
-    </header>
+            </div>
+        </template>
+    </nav>
+</header>
 </template>
-
 <style scoped>
 .site-header{position:sticky;top:0;z-index:50;background:#f7f3ed;color:#1a1a1a;border-bottom:1px solid rgba(26,26,26,.1)}
 .announcement{height:30px;background:#1e1e1b;color:#f7f3ed;display:flex;align-items:center;justify-content:center;gap:18px;font-size:9px;letter-spacing:.16em;text-transform:uppercase}.announcement-dot{color:#c3a060}
@@ -153,4 +142,24 @@ router.afterEach(closeMenus);
 @media(max-width:1000px){.header-main{padding:0 24px;grid-template-columns:90px minmax(0,1fr) 130px}.desktop-nav{gap:16px}.desktop-nav>a,.desktop-nav .dropdown-trigger{font-size:9px;letter-spacing:.09em}.header-icons{gap:13px}}
 @media(max-width:800px){.header-main{height:64px;display:flex;padding:0 8px 0 12px;gap:4px}.wordmark{width:48px;flex:0 0 48px}.desktop-nav{display:none}.header-icons{gap:0;margin-left:auto}.header-icons>a,.header-icons>button{width:44px;height:44px;flex:0 0 44px}.mobile-nav{padding:28px 20px 40px;gap:20px}.mobile-nav>a,.mobile-collections button{min-height:44px;font-size:26px;line-height:1.2}.mobile-collection-links a{display:flex;align-items:center;min-height:44px}.search-drawer{padding:12px;gap:8px}.search-drawer input{width:100%;min-width:0;font-size:16px}.search-drawer button{padding:0 14px;min-width:72px;min-height:44px}}
 @media(max-width:360px){.header-icons>a,.header-icons>button{width:42px;flex-basis:42px}.wordmark{width:44px;flex-basis:44px}.wordmark img{width:40px}}
+
+
+.desktop-nav{gap:clamp(24px,3.7vw,60px)}
+.desktop-nav>a,.desktop-nav .dropdown-trigger{font-family:'Geist',sans-serif;font-size:15px;font-weight:500;letter-spacing:.07em;text-transform:none}
+.nav-dropdown{position:static}.dropdown-trigger{min-height:44px}
+.mega-panel{position:absolute;top:100%;left:0;width:min(800px,100vw);max-height:calc(100dvh - 100px);overflow-y:auto;background:#fffdf9;padding:32px 40px;box-shadow:0 20px 40px #2620181a;border:1px solid #e7dfd3;border-left:0;border-radius:0 0 12px 0}
+.shop-panel{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px}
+.category-column{display:flex;flex-direction:column;gap:2px}
+.category-column>a,.category-column>button{display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:46px;padding:11px 14px;text-align:left;font:500 14px/1.5 'Geist',sans-serif;letter-spacing:.01em;text-transform:none;border-left:2px solid transparent;border-radius:0 5px 5px 0;transition:background .15s,color .15s}
+.category-column>a:hover,.category-column>button:hover{background:#f4efe7}.category-column .selected{background:#eee5d7;border-left-color:#9a7c50;color:#654c2c;font-weight:650}.category-column span{color:#777}
+.mega-panel a:after{display:none}.mega-panel .all-category{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:14px 0 18px;padding:12px 0;border-bottom:1px solid #e4dbcd;font:500 13px/1.5 'Geist',sans-serif;letter-spacing:0;text-transform:none;color:#775b34}.mega-panel .all-category:hover{color:#34271a}
+.menu-eyebrow{font:600 10px/1.5 'Geist',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#7c6c56}.category-label{padding:18px 14px 9px}.shop-shortcuts{display:grid;gap:3px;padding:12px 0 16px;border-bottom:1px solid #e4dbcd}.desktop-nav .shop-shortcuts a{display:flex;align-items:center;justify-content:space-between;min-height:40px;font-size:14px;font-weight:600;letter-spacing:0;text-transform:none}.shop-shortcuts a:hover{color:#8a6b3e}.subcategory-column{border-left:1px solid #e4dbcd;padding-left:32px}.submenu-title{font:400 30px/1.18 'GFS Didot',Georgia,serif;letter-spacing:-.02em;margin-top:10px;color:#302b24;overflow-wrap:anywhere}.menu-intro{padding-top:8px}.dropdown-trigger[aria-expanded="true"]{color:#775b34}.dropdown-trigger[aria-expanded="true"] span{transform:rotate(225deg)}
+.menu-hint{color:#777;font-size:14px;line-height:1.8;padding-top:12px}
+.category-chevron{width:16px;height:16px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.5;transition:transform .2s}.category-chevron.expanded{transform:rotate(90deg)}
+.mega-panel :deep(.category-branch a),.mobile-category-panel :deep(.category-branch a){font:400 15px/1.5 'Geist',sans-serif;letter-spacing:0;text-transform:none}
+.mobile-category-panel{padding:12px 0 12px 18px;border-left:1px solid #d4c5b0;margin-top:12px}
+.mobile-category-panel>a{display:block;padding:12px 0;font:400 15px/1.5 'Geist',sans-serif}
+.mobile-collections{border-bottom:1px solid #dfd6c8;padding-bottom:14px}.mobile-category-panel{background:#fffaf2;border-radius:0 8px 8px 0;padding:12px 16px}.mobile-collections>button[aria-expanded="true"]{color:#775b34}
+button:focus-visible,a:focus-visible{outline:2px solid #9a7c50;outline-offset:4px}
+@media(min-width:801px) and (max-width:1000px){.desktop-nav{gap:22px}.desktop-nav>a,.desktop-nav .dropdown-trigger{font-size:13px}}
 </style>

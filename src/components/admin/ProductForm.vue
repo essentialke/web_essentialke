@@ -38,13 +38,18 @@
             >
                 <option value="">Select Category</option>
                 <option
-                    v-for="category in categories"
+                    v-for="category in availableCategories"
                     :key="category.id"
                     :value="category.name"
                 >
                     {{ category.name }}
                 </option>
             </select>
+            <button v-if="!addingCategory" type="button" class="mt-2 text-sm underline" @click="addingCategory = true">+ Add a category or subcategory</button>
+            <div v-if="addingCategory" class="mt-3">
+                <CategoryEditor @saved="categorySaved" @cancel="addingCategory = false" />
+            </div>
+            <p v-if="categoryNotice" role="status" class="mt-2 text-sm text-green-700">{{ categoryNotice }}</p>
             <span v-if="errors.category" class="text-red-500 text-xs">{{
                 errors.category
             }}</span>
@@ -56,7 +61,7 @@
                 for="coverImage"
                 class="block text-sm font-medium text-gray-700"
             >
-                Cover Image
+                Product photo
             </label>
             <div class="flex items-start space-x-4">
                 <!-- Image Preview -->
@@ -79,6 +84,7 @@
                         @change="onFileSelected"
                         class="mt-1 block w-full"
                     />
+                    <p class="mt-1 text-xs text-gray-500">Choose a JPG, PNG or GIF up to 2 MB. Preview it here before saving.</p>
                     <span
                         v-if="errors.coverImage"
                         class="text-red-500 text-xs"
@@ -186,9 +192,10 @@
             </button>
             <button
                 type="submit"
+                :disabled="addingCategory"
                 class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
             >
-                Save
+                {{ isEditing ? 'Save product changes' : 'Add product' }}
             </button>
         </div>
     </form>
@@ -196,6 +203,8 @@
 
 <script setup>
 import { ref, watch, onMounted, computed } from "vue";
+import CategoryEditor from "./CategoryEditor.vue";
+import { activeLeafCategories } from "../../config/catalog";
 
 const props = defineProps({
     product: Object, // Book object being edited (if any)
@@ -205,7 +214,23 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(["save", "cancel"]);
+const emit = defineEmits(["save", "cancel", "categories-saved"]);
+const addingCategory = ref(false);
+const categoryNotice = ref("");
+const savedCategories = ref(null);
+const availableCategories = computed(() => savedCategories.value || props.categories);
+function categorySaved(response, category) {
+    savedCategories.value = activeLeafCategories(response.content.categories);
+    if (category.status === "active") {
+        formData.value.category = category.name;
+        errors.value.category = null;
+    }
+    addingCategory.value = false;
+    categoryNotice.value = category.status === "active"
+        ? `${category.name} added and selected. Continue adding your product.`
+        : `${category.name} saved as hidden. Choose a visible category for this product.`;
+    emit("categories-saved", response);
+}
 
 const isEditing = ref(false);
 const formData = ref({
@@ -346,21 +371,27 @@ const validateForm = () => {
 const onFileSelected = (event) => {
     const file = event.target.files[0];
     if (file) {
+        if (!["image/jpeg", "image/png", "image/gif"].includes(file.type)) {
+            errors.value.coverImage = "Choose a JPG, PNG or GIF image.";
+            event.target.value = "";
+            return;
+        }
         if (file.size > 2 * 1024 * 1024) {
             errors.value.coverImage = "Cover image must be 2 MB or smaller.";
             event.target.value = "";
-            formData.value.coverImage = null;
             return;
         }
 
         errors.value.coverImage = null;
         formData.value.coverImage = file;
         // Create a local URL for preview
+        if (localImageUrl.value) URL.revokeObjectURL(localImageUrl.value);
         localImageUrl.value = URL.createObjectURL(file);
     }
 };
 
 const onSubmit = () => {
+    if (addingCategory.value) return;
     if (validateForm()) {
         // Create a FormData object to send file data
         const form = new FormData();

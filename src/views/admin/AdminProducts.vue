@@ -2,6 +2,7 @@
     <div class="container mx-auto">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-2xl font-bold">Products</h2>
+            <RouterLink to="/admin/categories" class="text-sm underline">Manage Categories</RouterLink>
             <button
                 @click="openCreateModal"
                 class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
@@ -161,6 +162,7 @@
                 :categories="categories"
                 @save="saveProduct"
                 @cancel="closeModal"
+                @categories-saved="categories = activeLeafCategories($event.content.categories)"
             />
         </Modal>
     </div>

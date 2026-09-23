@@ -90,6 +90,8 @@ const route = useRoute();
 const links = [
     { to: "/admin/dashboard", icon: "tachometer-alt", name: "Dashboard" },
     { to: "/admin/products", icon: "cart-shopping", name: "Products" },
+    { to: "/admin/categories", icon: "book", name: "Categories" },
+    { to: "/admin/content", icon: "book", name: "Storefront" },
     { to: "/admin/subscribers", icon: "users", name: "Subscribers" },
     {
         to: "/admin/transactions",

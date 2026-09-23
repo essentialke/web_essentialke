@@ -1,10 +1,12 @@
 <script setup>
-import { computed, nextTick, onBeforeUnmount, ref, onMounted } from "vue";
+import { computed, reactive, nextTick, onBeforeUnmount, ref, onMounted } from "vue";
 import axios from "axios";
+import SkeletonBlock from "../components/SkeletonBlock.vue";
+import HeroSkeleton from "../components/sections/HeroSkeleton.vue";
 import HeroSection from "../components/sections/HeroSection.vue";
 import FeaturedProductsSection from "../components/sections/FeaturedProductsSection.vue";
 import { createImageSrcSet, resolveAssetUrl } from "../utils/assetUrl";
-import { copyDefaultCategories } from "../config/catalog";
+import { copyDefaultCategories, isStorefrontCategory } from "../config/catalog";
 import { DEFAULT_STOREFRONT_CONTENT, normalizeStorefrontContent } from "../config/storefront";
 
 const latestProducts = ref([]);
@@ -14,30 +16,23 @@ const heroContent = ref(null);
 const testimonialsContent = ref(null);
 const catalogCategories = ref(copyDefaultCategories());
 const storefrontContent = ref(normalizeStorefrontContent(DEFAULT_STOREFRONT_CONTENT));
-onMounted(async () => {
-    const [products, featuredProducts, catalog, hero, testimonialsResponse, categoriesResponse, storefrontResponse] = await Promise.allSettled([
-        axios.get("/products", {
-            params: {
-                sortBy: "createdAt",
-                sortOrder: "desc",
-                page: 1,
-                limit: 8,
-            },
-        }),
-        axios.get("/products", { params: { featured: true, page: 1, limit: 8 } }),
-        axios.get("/products", { params: { page: 1, limit: 50 } }),
-        axios.get("/contents/hero"),
-        axios.get("/contents/testimonials"),
-        axios.get("/contents/categories"),
-        axios.get("/contents/storefront"),
-    ]);
-    if (products.status === "fulfilled") latestProducts.value = products.value.data.products || [];
-    if (featuredProducts.status === "fulfilled") bestSellers.value = featuredProducts.value.data.products || [];
-    if (catalog.status === "fulfilled") catalogProducts.value = catalog.value.data.products || [];
-    if (hero.status === "fulfilled") heroContent.value = hero.value.data?.content || null;
-    if (testimonialsResponse.status === "fulfilled") testimonialsContent.value = testimonialsResponse.value.data?.content || null;
-    if (categoriesResponse.status === "fulfilled") catalogCategories.value = categoriesResponse.value.data?.content?.categories || copyDefaultCategories();
-    if (storefrontResponse.status === "fulfilled") storefrontContent.value = normalizeStorefrontContent(storefrontResponse.value.data?.content);
+const loading = reactive({ products: true, featured: true, catalog: true, hero: true, testimonials: true, categories: true, storefront: true });
+const isLoading = computed(() => Object.values(loading).some(Boolean));
+const categoryLoading = computed(() => loading.catalog || loading.categories || loading.storefront);
+const bestSellersLoading = computed(() => loading.featured || (!bestSellers.value.length && loading.catalog));
+async function loadSection(key, url, apply, params) {
+    try { const response = await axios.get(url, { params, timeout: 15000 }); apply(response.data); }
+    catch (error) { console.warn('Could not load homepage section: ' + key, error); }
+    finally { loading[key] = false; }
+}
+onMounted(() => {
+    loadSection('products', '/products', data => { latestProducts.value = data.products || []; }, { sortBy: 'createdAt', sortOrder: 'desc', page: 1, limit: 4, view: 'cards', includeTotal: false });
+    loadSection('featured', '/products', data => { bestSellers.value = data.products || []; }, { featured: true, page: 1, limit: 4, view: 'cards', includeTotal: false });
+    loadSection('catalog', '/products', data => { catalogProducts.value = data.products || []; }, { page: 1, limit: 50, view: 'cards', includeTotal: false });
+    loadSection('hero', '/contents/hero', data => { heroContent.value = data.content || null; });
+    loadSection('testimonials', '/contents/testimonials', data => { testimonialsContent.value = data.content || null; });
+    loadSection('categories', '/contents/categories', data => { catalogCategories.value = data.content?.categories || copyDefaultCategories(); });
+    loadSection('storefront', '/contents/storefront', data => { storefrontContent.value = normalizeStorefrontContent(data.content); });
 });
 
 const categoryById = (id) => catalogCategories.value.find((category) => category.id === id);
@@ -48,7 +43,7 @@ const matchingProduct = (label, index = 0) => {
         `${product.category || ""} ${product.title || ""}`.toLowerCase().includes(needle),
     ) || catalogProducts.value[index % Math.max(catalogProducts.value.length, 1)];
 };
-const categoryTiles = computed(() => storefrontContent.value.quickNavCategoryIds.map((id, index) => {
+const categoryTiles = computed(() => storefrontContent.value.quickNavCategoryIds.filter(id => isStorefrontCategory(categoryById(id))).map((id, index) => {
     const category = categoryById(id);
     return { id, name: category?.name || "Category", image: productImage(matchingProduct(category?.name || "", index)) };
 }));
@@ -124,14 +119,17 @@ onBeforeUnmount(() => {
 
 <template>
     <div class="home">
-        <HeroSection :content="heroContent" />
+        <p class="sr-only" role="status">{{ isLoading ? "Loading the shop..." : "Shop loaded." }}</p>
+        <HeroSkeleton v-if="loading.hero" />
+        <HeroSection v-else :content="heroContent" />
         <div class="homepage-flow">
         <section v-if="isVisible('quickNav')" class="category-section" :style="sectionStyle('quickNav')" aria-labelledby="category-heading">
             <div class="compact-heading">
                 <p class="kicker">Find your piece</p>
                 <h2 id="category-heading">Shop by category</h2>
             </div>
-            <nav class="category-row" aria-label="Shop by category">
+            <div v-if="categoryLoading" class="category-row skeleton-categories" aria-hidden="true"><div v-for="n in 6" :key="n"><SkeletonBlock class="category-image" /><SkeletonBlock class="category-label-skeleton" /></div></div>
+            <nav v-else class="category-row" aria-label="Shop by category">
                 <RouterLink v-for="category in categoryTiles" :key="category.name" :to="{ path: '/products', query: { category: category.name } }">
                     <span class="category-image"><img v-if="category.image" :src="resolveAssetUrl(category.image, { width: 320 })" :srcset="createImageSrcSet(category.image, [160, 240, 320])" sizes="132px" alt="" loading="lazy" /></span>
                     <span>{{ category.name }}</span>
@@ -139,14 +137,15 @@ onBeforeUnmount(() => {
             </nav>
         </section>
 
-        <FeaturedProductsSection v-if="isVisible('bestSellers')" :style="sectionStyle('bestSellers')" :products="displayedBestSellers" :kicker="storefrontContent.headings.bestSellers.kicker" :title="storefrontContent.headings.bestSellers.title" :limit="4" />
+        <FeaturedProductsSection v-if="isVisible('bestSellers')" :style="sectionStyle('bestSellers')" :loading="bestSellersLoading || loading.storefront" :products="displayedBestSellers" :kicker="storefrontContent.headings.bestSellers.kicker" :title="storefrontContent.headings.bestSellers.title" :limit="4" />
 
         <section v-if="isVisible('featuredCollections')" class="collections" :style="sectionStyle('featuredCollections')" aria-labelledby="collections-heading">
             <div class="section-heading">
                 <div><p class="kicker">{{ storefrontContent.headings.featuredCollections.kicker }}</p><h2 id="collections-heading">{{ storefrontContent.headings.featuredCollections.title }}</h2></div>
                 <RouterLink :to="{ path: '/products', query: { category: 'Collections' } }">View all collections <span>→</span></RouterLink>
             </div>
-            <div class="collection-grid">
+            <div v-if="categoryLoading" class="collection-grid" aria-hidden="true"><SkeletonBlock v-for="n in 4" :key="n" class="skeleton-collection" /></div>
+            <div v-else class="collection-grid">
                 <RouterLink v-for="collection in collectionTiles" :key="collection.name" :to="{ path: '/products', query: { category: collection.query } }" class="collection-card">
                     <img v-if="collection.image" :src="resolveAssetUrl(collection.image, { width: 720 })" :srcset="createImageSrcSet(collection.image, [320, 480, 720])" sizes="(max-width: 900px) 50vw, 25vw" :alt="`${collection.name} collection`" loading="lazy" />
                     <div><p>{{ collection.name }}</p><span>{{ collection.copy }}</span></div>
@@ -154,16 +153,17 @@ onBeforeUnmount(() => {
             </div>
         </section>
 
-        <FeaturedProductsSection v-if="isVisible('newArrivals')" :style="sectionStyle('newArrivals')" :products="latestProducts" :kicker="storefrontContent.headings.newArrivals.kicker" :title="storefrontContent.headings.newArrivals.title" :limit="4" secondary />
+        <FeaturedProductsSection v-if="isVisible('newArrivals')" :style="sectionStyle('newArrivals')" :loading="loading.products || loading.storefront" :products="latestProducts" :kicker="storefrontContent.headings.newArrivals.kicker" :title="storefrontContent.headings.newArrivals.title" :limit="4" secondary />
 
         <section v-if="isVisible('gifting')" class="gift-banner" :style="sectionStyle('gifting')">
             <div class="gift-copy"><p class="kicker">{{ storefrontContent.gifting.eyebrow }}</p><h2>{{ storefrontContent.gifting.heading }}</h2><p>{{ storefrontContent.gifting.body }}</p><RouterLink :to="storefrontContent.gifting.ctaRoute">{{ storefrontContent.gifting.ctaLabel }} <span>→</span></RouterLink></div>
-            <div class="gift-image"><img v-if="giftImage" :src="resolveAssetUrl(giftImage, { width: 1280 })" :srcset="createImageSrcSet(giftImage, [480, 768, 1024, 1280])" sizes="(max-width: 900px) 100vw, 50vw" alt="Essential jewelry gift selection" loading="lazy" /></div>
+            <div class="gift-image"><SkeletonBlock v-if="loading.catalog" class="gift-skeleton" /><img v-else-if="giftImage" :src="resolveAssetUrl(giftImage, { width: 1280 })" :srcset="createImageSrcSet(giftImage, [480, 768, 1024, 1280])" sizes="(max-width: 900px) 100vw, 50vw" alt="Essential jewelry gift selection" loading="lazy" /></div>
         </section>
 
         <section v-if="isVisible('testimonials')" class="reviews" :style="sectionStyle('testimonials')">
             <div class="review-heading"><p class="kicker">Worn and loved</p><h2>Loved by Our Customers</h2></div>
-            <div class="review-carousel" @mouseenter="stopTestimonials" @mouseleave="startTestimonials">
+            <div v-if="loading.testimonials" class="review-skeleton-grid" aria-hidden="true"><div v-for="n in 3" :key="n" class="review-skeleton"><SkeletonBlock class="review-stars-skeleton" /><SkeletonBlock /><SkeletonBlock /><SkeletonBlock class="review-short-skeleton" /><SkeletonBlock class="review-name-skeleton" /></div></div>
+            <div v-else class="review-carousel" @mouseenter="stopTestimonials" @mouseleave="startTestimonials">
                 <div class="review-grid" :style="carouselStyle" @transitionend="normalizeCarousel">
                     <article v-for="(testimonial, index) in carouselItems" :key="`${testimonial.id || testimonial.name}-${index}`">
                         <div class="stars">{{ "★".repeat(testimonial.rating || 5) }}</div>
@@ -181,6 +181,12 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.skeleton-collection{aspect-ratio:4/5;border-radius:0}.skeleton-categories>div{width:132px;max-width:100%;display:flex;flex-direction:column;align-items:center;gap:11px;min-width:0}.category-label-skeleton{height:14px;width:72px}.gift-skeleton{height:100%;min-height:500px;border-radius:0}.review-skeleton-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;padding:0 54px}.review-skeleton{min-height:438px;padding:38px;background:#fff;display:flex;flex-direction:column;gap:16px;border:1px solid #e7e0d6}.review-stars-skeleton{width:90px;margin-bottom:22px}.review-short-skeleton{width:65%}.review-name-skeleton{width:45%;margin-top:auto}
+@media(max-width:900px){.gift-skeleton{min-height:420px}}
+@media(max-width:800px){.review-skeleton-grid{grid-template-columns:1fr;padding:0 42px}.review-skeleton{min-height:370px}.review-skeleton:not(:first-child){display:none}}
+@media(max-width:640px){.skeleton-categories>div{flex:0 0 clamp(104px,29vw,120px)}.review-skeleton-grid{padding:0 32px}.review-skeleton{min-height:250px;padding:20px 16px}}
+@media(max-width:520px){.gift-skeleton{min-height:240px;height:240px}}
+
 .home{background:#f7f3ed;color:#1a1a1a}.benefit-strip{max-width:1440px;margin:auto;padding:28px 4vw;display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #ddd4c7}.benefit{display:flex;justify-content:center;align-items:center;gap:13px;border-right:1px solid #ddd4c7}.benefit:last-child{border:0}.benefit>span{width:34px;height:34px;border:1px solid #b08d57;border-radius:50%;display:grid;place-items:center;color:#9c7945}.benefit b,.benefit small{display:block}.benefit b{font-size:9px;text-transform:uppercase;letter-spacing:.15em}.benefit small{font-size:10px;color:#777;margin-top:4px}.category-row{display:flex;justify-content:center;gap:42px;padding:25px 20px;border-bottom:1px solid #ddd4c7;overflow:auto}.category-row a{white-space:nowrap;font:italic 16px Georgia,serif;color:#4d4942}.category-row a:hover{color:#a17e49}.story-banner{display:grid;grid-template-columns:1.05fr .95fr;background:#24231f;color:#f7f3ed;min-height:610px}.story-visual{position:relative;overflow:hidden;background:radial-gradient(circle at 55% 40%,#c8a76e 0 8%,#8c704b 9% 24%,#3b352b 48%,#24231f 72%);display:grid;place-items:center}.story-visual:after{content:"";position:absolute;width:250px;height:330px;border:1px solid rgba(231,199,137,.55);border-radius:48% 48% 43% 43%;box-shadow:0 0 0 30px rgba(176,141,87,.08),0 0 80px rgba(201,164,92,.35)}.story-visual span{font:44px Georgia;color:#e4c889;letter-spacing:.3em;margin-left:.3em}.story-copy{padding:90px 8vw 80px 7vw;display:flex;flex-direction:column;justify-content:center}.kicker{font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:#b08d57;margin-bottom:18px}.story-copy h2,.review-heading h2{font:400 clamp(35px,4vw,54px)/1.12 Georgia,serif}.story-copy h2 em{color:#c9a86c;font-weight:400}.story-copy>p:not(.kicker){font-size:13px;color:#c8c3b9;line-height:1.9;max-width:530px;margin:28px 0}.story-copy a{font-size:9px;letter-spacing:.18em;text-transform:uppercase;border-bottom:1px solid #a98851;align-self:flex-start;padding-bottom:7px}.reviews{padding:105px 5vw;max-width:1440px;margin:auto}.review-heading{text-align:center;margin-bottom:50px}.review-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}.review-grid article{background:#fbf9f5;border:1px solid #e1d9ce;padding:38px}.stars{color:#ae8b53;font-size:11px;letter-spacing:.12em}.review-grid blockquote{font:italic 19px/1.6 Georgia,serif;margin:22px 0 34px}.review-grid footer{display:flex;justify-content:space-between;align-items:center;font-size:9px;letter-spacing:.12em}.review-grid footer span{color:#6b7b55}.press{text-align:center;border-top:1px solid #ded6cb;padding:60px 20px 75px}.press>p{font-size:8px;letter-spacing:.25em;text-transform:uppercase;color:#8b8175}.press>div{display:flex;justify-content:center;align-items:center;gap:6vw;margin:30px 0;color:#77716a}.press>div span{font:bold 20px Georgia,serif}.press>div span:nth-child(3){font:700 14px Arial}.press blockquote{font:italic 18px Georgia,serif;color:#514c45}@media(max-width:800px){.benefit-strip{grid-template-columns:repeat(2,1fr);gap:22px 0}.benefit:nth-child(2){border:0}.category-row{justify-content:flex-start}.story-banner{grid-template-columns:1fr}.story-visual{min-height:390px}.story-copy{padding:65px 24px}.review-grid{grid-template-columns:1fr}.reviews{padding:75px 20px}.press>div{gap:22px;flex-wrap:wrap}}
 .category-row a,.story-visual span,.story-copy h2,.review-heading h2,.review-grid blockquote,.press>div span,.press blockquote{font-family:'GFS Didot',Georgia,serif}.category-row a{font-size:19px}.story-copy h2,.review-heading h2{font-size:clamp(40px,4.2vw,58px);line-height:1.06;letter-spacing:-.015em}.story-copy>p:not(.kicker){font-size:14px;line-height:1.85}.review-grid blockquote{font-size:21px;line-height:1.5}.kicker,.benefit b,.story-copy a,.review-grid footer,.press>p{font-family:'Geist',sans-serif;font-weight:600}.review-heading{max-width:700px;margin-left:auto;margin-right:auto}
 .home{background:#fff}.benefit-strip,.category-row{background:#fff}.benefit-strip{max-width:none;padding-left:max(4vw,calc((100vw - 1440px)/2 + 4vw));padding-right:max(4vw,calc((100vw - 1440px)/2 + 4vw));border-color:#e9e4dd}.category-row{border-color:#e9e4dd}.reviews{box-sizing:border-box;width:100%;max-width:none;margin-left:0;margin-right:0;padding-left:max(5vw,calc((100vw - 1440px)/2 + 5vw));padding-right:max(5vw,calc((100vw - 1440px)/2 + 5vw));background:#f7f3ed}.review-grid article{background:#fff;border-color:#e7e0d6}.press{background:#fff;border-color:#e9e4dd}
