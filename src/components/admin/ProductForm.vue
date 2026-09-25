@@ -19,7 +19,7 @@
 
         <div>
             <label for="salePrice" class="block text-sm font-medium text-gray-700">Sale Price <span class="font-normal text-gray-500">(optional)</span></label>
-            <input id="salePrice" v-model="formData.salePrice" type="number" min="0" step="0.01" placeholder="Leave blank when not on sale" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" />
+            <input id="salePrice" v-model="formData.salePrice" type="number" min="0" step="0.01" placeholder="Leave blank when not on sale" class="number-input mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" />
             <p class="mt-1 text-xs text-gray-500">Must be lower than the regular price. Clearing it removes the product from Sale.</p>
             <span v-if="errors.salePrice" class="text-red-500 text-xs">{{ errors.salePrice }}</span>
         </div>
@@ -45,11 +45,6 @@
                     {{ category.name }}
                 </option>
             </select>
-            <button v-if="!addingCategory" type="button" class="mt-2 text-sm underline" @click="addingCategory = true">+ Add a category or subcategory</button>
-            <div v-if="addingCategory" class="mt-3">
-                <CategoryEditor @saved="categorySaved" @cancel="addingCategory = false" />
-            </div>
-            <p v-if="categoryNotice" role="status" class="mt-2 text-sm text-green-700">{{ categoryNotice }}</p>
             <span v-if="errors.category" class="text-red-500 text-xs">{{
                 errors.category
             }}</span>
@@ -148,7 +143,7 @@
                 id="quantityShop"
                 v-model="formData.quantityShop"
                 required
-                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                class="number-input mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
             />
             <span v-if="errors.quantityShop" class="text-red-500 text-xs">{{
                 errors.quantityShop
@@ -200,7 +195,6 @@
             </button>
             <button
                 type="submit"
-                :disabled="addingCategory"
                 class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
             >
                 {{ isEditing ? 'Save product changes' : 'Add product' }}
@@ -209,9 +203,20 @@
     </form>
 </template>
 
+<style scoped>
+.number-input::-webkit-inner-spin-button,
+.number-input::-webkit-outer-spin-button {
+    appearance: none;
+    margin: 0;
+}
+
+.number-input {
+    -moz-appearance: textfield;
+}
+</style>
+
 <script setup>
 import { ref, watch, onMounted, computed } from "vue";
-import CategoryEditor from "./CategoryEditor.vue";
 import { activeLeafCategories, collectionCategories } from "../../config/catalog";
 
 const props = defineProps({
@@ -222,26 +227,11 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(["save", "cancel", "categories-saved"]);
-const addingCategory = ref(false);
-const categoryNotice = ref("");
+const emit = defineEmits(["save", "cancel"]);
 const savedCategories = ref(null);
 const categoryCatalog = computed(() => savedCategories.value || props.categories);
 const categoryOptions = computed(() => activeLeafCategories(categoryCatalog.value).filter((category) => !collectionCategories(categoryCatalog.value).some((collection) => collection.id === category.id)));
 const availableCollections = computed(() => collectionCategories(categoryCatalog.value));
-function categorySaved(response, category) {
-    savedCategories.value = response.content.categories;
-    if (category.status === "active") {
-        formData.value.category = category.name;
-        errors.value.category = null;
-    }
-    addingCategory.value = false;
-    categoryNotice.value = category.status === "active"
-        ? `${category.name} added and selected. Continue adding your product.`
-        : `${category.name} saved as hidden. Choose a visible category for this product.`;
-    emit("categories-saved", response);
-}
-
 const isEditing = ref(false);
 const formData = ref({
     title: "",
@@ -403,7 +393,6 @@ const onFileSelected = (event) => {
 };
 
 const onSubmit = () => {
-    if (addingCategory.value) return;
     if (validateForm()) {
         // Create a FormData object to send file data
         const form = new FormData();
