@@ -44,8 +44,8 @@ const rows = computed(() => {
     categories.value.filter(item => !seen.has(item.id)).forEach(item => visit(item, 0, []));
     return result.filter(item => item.breadcrumb.toLowerCase().includes(search.value.trim().toLowerCase()));
 });
-async function openEditor(category = null, parentId = null) {
-    editor.value = { category, parentId };
+async function openEditor(category = null, parentId = null, type = 'category') {
+    editor.value = { category, parentId, type };
     await nextTick(); editorHost.value?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 async function closeEditor() { editor.value = null; await nextTick(); addButton.value?.focus(); }
@@ -58,7 +58,7 @@ function saved(response, category) { emit('saved', response, category); closeEdi
             <button ref="addButton" type="button" class="primary" :disabled="Boolean(editor) || Boolean(deleteTarget)" @click="openEditor()">+ Add category</button>
         </div>
         <div v-if="editor" ref="editorHost">
-            <CategoryEditor :key="editor.category?.id ?? editor.parentId ?? 'new'" :category="editor.category" :parent-id="editor.parentId" @saved="saved" @cancel="closeEditor" />
+            <CategoryEditor :key="editor.category?.id ?? editor.parentId ?? 'new'" :category="editor.category" :parent-id="editor.parentId" :type="editor.type" @saved="saved" @cancel="closeEditor" />
         </div>
         <div v-if="deleteTarget" class="delete-confirm" role="region" aria-label="Confirm category deletion">
             <strong>Delete {{ deleteTarget.name }}?</strong>
@@ -74,7 +74,7 @@ function saved(response, category) { emit('saved', response, category); closeEdi
                     <div><strong>{{ category.name }}</strong><small v-if="category.depth">{{ category.breadcrumb }}</small><small v-else>Main category</small></div>
                     <span v-if="category.status !== 'active'" class="badge">Hidden</span>
                 </div>
-                <div class="row-actions"><button type="button" :disabled="Boolean(editor) || Boolean(deleteTarget)" @click="openEditor(null, category.id)">+ Add subcategory<span class="sr-only"> under {{ category.name }}</span></button><button type="button" :disabled="Boolean(editor) || Boolean(deleteTarget)" @click="openEditor(category)">Edit<span class="sr-only"> {{ category.name }}</span></button><button type="button" class="delete-button" :disabled="Boolean(editor) || Boolean(deleteTarget)" @click="deleteTarget = category; error = ''">Delete<span class="sr-only"> {{ category.name }}</span></button></div>
+                <div class="row-actions"><button v-if="category.slug === 'collections'" type="button" :disabled="Boolean(editor) || Boolean(deleteTarget)" @click="openEditor(null, category.id, 'collection')">+ Add collection</button><button v-else type="button" :disabled="Boolean(editor) || Boolean(deleteTarget)" @click="openEditor(null, category.id)">+ Add subcategory<span class="sr-only"> under {{ category.name }}</span></button><button type="button" :disabled="Boolean(editor) || Boolean(deleteTarget)" @click="openEditor(category)">Edit<span class="sr-only"> {{ category.name }}</span></button><button type="button" class="delete-button" :disabled="Boolean(editor) || Boolean(deleteTarget)" @click="deleteTarget = category; error = ''">Delete<span class="sr-only"> {{ category.name }}</span></button></div>
             </div>
             <div v-if="!rows.length" class="empty"><p>{{ categories.length ? 'No matching categories.' : 'Start with your first category.' }}</p><p v-if="!categories.length">Add a main category, then add subcategories beneath it.</p></div>
         </div>

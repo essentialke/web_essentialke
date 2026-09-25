@@ -38,7 +38,7 @@
             >
                 <option value="">Select Category</option>
                 <option
-                    v-for="category in availableCategories"
+                    v-for="category in categoryOptions"
                     :key="category.id"
                     :value="category.name"
                 >
@@ -53,6 +53,14 @@
             <span v-if="errors.category" class="text-red-500 text-xs">{{
                 errors.category
             }}</span>
+        </div>
+
+        <div>
+            <label for="collection" class="block text-sm font-medium text-gray-700">Collection</label>
+            <select id="collection" v-model="formData.collection" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm">
+                <option value="">No collection</option>
+                <option v-for="collection in availableCollections" :key="collection.id" :value="collection.name">{{ collection.name }}</option>
+            </select>
         </div>
 
         <!-- Cover Image with Preview -->
@@ -204,7 +212,7 @@
 <script setup>
 import { ref, watch, onMounted, computed } from "vue";
 import CategoryEditor from "./CategoryEditor.vue";
-import { activeLeafCategories } from "../../config/catalog";
+import { activeLeafCategories, collectionCategories } from "../../config/catalog";
 
 const props = defineProps({
     product: Object, // Book object being edited (if any)
@@ -218,9 +226,11 @@ const emit = defineEmits(["save", "cancel", "categories-saved"]);
 const addingCategory = ref(false);
 const categoryNotice = ref("");
 const savedCategories = ref(null);
-const availableCategories = computed(() => savedCategories.value || props.categories);
+const categoryCatalog = computed(() => savedCategories.value || props.categories);
+const categoryOptions = computed(() => activeLeafCategories(categoryCatalog.value).filter((category) => !collectionCategories(categoryCatalog.value).some((collection) => collection.id === category.id)));
+const availableCollections = computed(() => collectionCategories(categoryCatalog.value));
 function categorySaved(response, category) {
-    savedCategories.value = activeLeafCategories(response.content.categories);
+    savedCategories.value = response.content.categories;
     if (category.status === "active") {
         formData.value.category = category.name;
         errors.value.category = null;
@@ -236,6 +246,7 @@ const isEditing = ref(false);
 const formData = ref({
     title: "",
     category: "",
+    collection: "",
     coverImageUrl: "",
     description: "",
     price: null,
@@ -314,6 +325,7 @@ watch(
                 author: "",
                 isbn: "",
                 category: "",
+                collection: "",
                 coverImageUrl: "",
                 description: "",
                 price: null,

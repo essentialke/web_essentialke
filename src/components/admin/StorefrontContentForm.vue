@@ -31,8 +31,10 @@ const moveSection = (index, direction) => {
 const validate = () => {
     const quickIds = form.value.quickNavCategoryIds.map(Number);
     const collectionIds = form.value.featuredCollections.map((item) => Number(item.categoryId));
+    const linkedCategoryIds = form.value.featuredCollections.map((item) => Number(item.linkedCategoryId));
     if (quickIds.length !== 6 || new Set(quickIds).size !== 6 || quickIds.some((id) => !id)) return "Choose six different quick-nav categories.";
     if (collectionIds.length !== 4 || new Set(collectionIds).size !== 4 || collectionIds.some((id) => !id)) return "Choose four different featured collections.";
+    if (linkedCategoryIds.some((id) => !id)) return "Link each collection to a shop category.";
     return "";
 };
 
@@ -43,7 +45,7 @@ const save = async () => {
     try {
         const payload = normalizeStorefrontContent(form.value);
         payload.quickNavCategoryIds = payload.quickNavCategoryIds.map(Number);
-        payload.featuredCollections = payload.featuredCollections.map((item) => ({ ...item, categoryId: Number(item.categoryId) }));
+        payload.featuredCollections = payload.featuredCollections.map((item) => ({ ...item, categoryId: Number(item.categoryId), linkedCategoryId: Number(item.linkedCategoryId) }));
         const response = await axios.put("/contents/storefront", { content: payload });
         emit("saved", response.data);
     } catch (requestError) {
@@ -69,6 +71,7 @@ const save = async () => {
             <h3>Featured Collections</h3><p class="help">Exactly four existing collection categories. Collection names cannot drift from Products.</p>
             <div v-for="(item, index) in form.featuredCollections" :key="index" class="collection-row">
                 <label>Collection {{ index + 1 }}<select v-model="item.categoryId" required><option disabled value="">Select collection</option><option v-for="category in collectionCategories" :key="category.id" :value="category.id">{{ category.name }}</option></select></label>
+                <label>Shop category<select v-model="item.linkedCategoryId" required><option disabled value="">Select category</option><option v-for="category in activeCategories" :key="category.id" :value="category.id">{{ category.name }}</option></select></label>
                 <label>Supporting line <input v-model.trim="item.description" maxlength="90" required /><small>{{ item.description.length }}/90</small></label>
             </div>
         </div>
@@ -108,5 +111,5 @@ const save = async () => {
 </template>
 
 <style scoped>
-.panel{padding:4px}.panel h3{font-size:18px;font-weight:650;color:#1f2937}.help{font-size:13px;color:#6b7280;margin:5px 0 22px}.field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.wide{grid-column:1/-1}label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:#374151}input,select{width:100%;border:1px solid #d1d5db;border-radius:6px;padding:9px 11px;background:white;font-weight:400}small{align-self:flex-end;color:#9ca3af;font-weight:400}.collection-row,.heading-row{display:grid;grid-template-columns:.85fr 1.5fr;gap:18px;padding:18px 0;border-top:1px solid #e5e7eb}.heading-row{grid-template-columns:.65fr 1fr 1fr;align-items:end}.heading-row b{padding-bottom:10px}.order-row{display:grid;grid-template-columns:1fr auto 38px 38px;align-items:center;gap:8px;padding:12px;border-top:1px solid #e5e7eb}.order-row button{border:1px solid #d1d5db;border-radius:5px;padding:6px}.visibility{flex-direction:row;align-items:center}.visibility input{width:auto}.actions{display:flex;justify-content:flex-end}.actions button{background:#1f2937;color:white;border-radius:6px;padding:10px 18px;font-size:13px;font-weight:650}.actions button:disabled{opacity:.55}.error{color:#b91c1c;font-size:13px}@media(max-width:700px){.field-grid,.collection-row,.heading-row{grid-template-columns:1fr}.wide{grid-column:auto}.order-row{grid-template-columns:1fr auto 34px 34px}}
+.panel{padding:4px}.panel h3{font-size:18px;font-weight:650;color:#1f2937}.help{font-size:13px;color:#6b7280;margin:5px 0 22px}.field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.wide{grid-column:1/-1}label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:#374151}input,select{width:100%;border:1px solid #d1d5db;border-radius:6px;padding:9px 11px;background:white;font-weight:400}small{align-self:flex-end;color:#9ca3af;font-weight:400}.collection-row,.heading-row{display:grid;grid-template-columns:1fr 1fr 1.5fr;gap:18px;padding:18px 0;border-top:1px solid #e5e7eb}.heading-row{grid-template-columns:.65fr 1fr 1fr;align-items:end}.heading-row b{padding-bottom:10px}.order-row{display:grid;grid-template-columns:1fr auto 38px 38px;align-items:center;gap:8px;padding:12px;border-top:1px solid #e5e7eb}.order-row button{border:1px solid #d1d5db;border-radius:5px;padding:6px}.visibility{flex-direction:row;align-items:center}.visibility input{width:auto}.actions{display:flex;justify-content:flex-end}.actions button{background:#1f2937;color:white;border-radius:6px;padding:10px 18px;font-size:13px;font-weight:650}.actions button:disabled{opacity:.55}.error{color:#b91c1c;font-size:13px}@media(max-width:700px){.field-grid,.collection-row,.heading-row{grid-template-columns:1fr}.wide{grid-column:auto}.order-row{grid-template-columns:1fr auto 34px 34px}}
 </style>

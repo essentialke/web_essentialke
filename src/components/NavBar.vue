@@ -20,6 +20,7 @@ const tree = computed(() => {
 const rootsFor = name => name === 'Shop' ? tree.value : tree.value.filter(c => name === 'Collections' ? c.slug === 'collections' : ['gifts', 'gifting', 'gift-sets'].includes(c.slug));
 const selected = computed(() => tree.value.find(c => c.id === selectedId.value));
 const categoryPath = name => ({ path: '/products', query: { category: name } });
+const collectionPath = name => ({ path: '/products', query: { collection: name } });
 function toggleCategory(id) { selectedId.value = selectedId.value === id ? null : id; }
 async function enterCategory(id) { selectedId.value = id; await nextTick(); header.value?.querySelector('#shop-subcategories a')?.focus(); }
 function toggleDropdown(name) { openDropdown.value = openDropdown.value === name ? null : name; selectedId.value = null; searchOpen.value = false; }
@@ -75,7 +76,7 @@ onBeforeUnmount(() => { document.removeEventListener('keydown', onKey); document
                             <p class="menu-eyebrow">Discover</p>
                             <h2 class="submenu-title">{{ item.name }}</h2>
                             <RouterLink v-if="item.name === 'Gifts'" class="all-category" to="/gifting">Explore Gifts</RouterLink>
-                            <CategoryMenuBranch :categories="rootsFor(item.name)" />
+                            <CategoryMenuBranch :categories="rootsFor(item.name)" :query-key="item.name === 'Collections' ? 'collection' : 'category'" />
                             <p v-if="item.name === 'Collections' && !rootsFor(item.name).length" class="menu-hint">Collections coming soon.</p>
                         </template>
                     </div>
@@ -115,7 +116,7 @@ onBeforeUnmount(() => { document.removeEventListener('keydown', onKey); document
                 <div v-if="openDropdown === item.name" :id="'mobile-' + item.name" class="mobile-category-panel">
                     <template v-if="item.name === 'Shop'"><RouterLink to="/products">Shop All</RouterLink><RouterLink to="/products?sortBy=createdAt&sortOrder=desc">New Releases</RouterLink></template>
                     <RouterLink v-if="item.name === 'Gifts'" to="/gifting">Explore Gifts</RouterLink>
-                    <CategoryMenuBranch :categories="rootsFor(item.name)" />
+                    <CategoryMenuBranch :categories="rootsFor(item.name)" :query-key="item.name === 'Collections' ? 'collection' : 'category'" />
                     <p v-if="item.name === 'Collections' && !rootsFor(item.name).length">Collections coming soon.</p>
                 </div>
             </div>

@@ -1,17 +1,18 @@
 <script setup>
 import { RouterLink } from "vue-router";
-defineProps({ categories: { type: Array, required: true } });
+const props = defineProps({ categories: { type: Array, required: true }, queryKey: { type: String, default: "category" } });
+const linkFor = (category) => ({ path: "/products", query: { [props.queryKey]: category.name } });
 </script>
 
 <template>
     <ul class="category-branch">
-        <li v-for="category in categories" :key="category.id">
+        <li v-for="category in props.categories" :key="category.id">
             <details v-if="category.children.length">
                 <summary>{{ category.name }}<svg class="branch-chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" /></svg></summary>
-                <RouterLink :to="{ path: '/products', query: { category: category.name } }">All {{ category.name }}</RouterLink>
-                <CategoryMenuBranch :categories="category.children" />
+                <RouterLink :to="linkFor(category)">All {{ category.name }}</RouterLink>
+                <CategoryMenuBranch :categories="category.children" :query-key="props.queryKey" />
             </details>
-            <RouterLink v-else :to="{ path: '/products', query: { category: category.name } }">{{ category.name }}</RouterLink>
+            <RouterLink v-else :to="linkFor(category)">{{ category.name }}</RouterLink>
         </li>
     </ul>
 </template>

@@ -227,15 +227,15 @@ async function fetchCategories() {
             response.data.content.categories
         ) {
             // Get only active categories
-            categories.value = activeLeafCategories(response.data.content.categories);
+            categories.value = response.data.content.categories.filter((category) => category.status === "active");
         } else {
             // Fallback to default categories if none are found
-            categories.value = activeLeafCategories(copyDefaultCategories());
+            categories.value = copyDefaultCategories();
         }
     } catch (error) {
         console.error("Error fetching categories:", error);
         // Fallback to default categories if there's an error
-        categories.value = activeLeafCategories(copyDefaultCategories());
+        categories.value = copyDefaultCategories();
     }
 }
 
