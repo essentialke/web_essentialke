@@ -45,6 +45,10 @@
                     {{ category.name }}
                 </option>
             </select>
+                <button v-if="isEditing && parentCategory" type="button" class="mt-2 text-sm underline" @click="addingSubcategory = true">+ Add subcategory</button>
+                <div v-if="addingSubcategory" class="mt-3">
+                    <CategoryEditor :parent-id="parentCategory.id" @saved="subcategorySaved" @cancel="addingSubcategory = false" />
+                </div>
             <span v-if="errors.category" class="text-red-500 text-xs">{{
                 errors.category
             }}</span>
@@ -195,6 +199,7 @@
             </button>
             <button
                 type="submit"
+                :disabled="addingSubcategory"
                 class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
             >
                 {{ isEditing ? 'Save product changes' : 'Add product' }}
@@ -217,6 +222,7 @@
 
 <script setup>
 import { ref, watch, onMounted, computed } from "vue";
+import CategoryEditor from "./CategoryEditor.vue";
 import { activeLeafCategories, collectionCategories } from "../../config/catalog";
 
 const props = defineProps({
@@ -227,11 +233,20 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(["save", "cancel"]);
+const emit = defineEmits(["save", "cancel", "categories-saved"]);
+const addingSubcategory = ref(false);
 const savedCategories = ref(null);
 const categoryCatalog = computed(() => savedCategories.value || props.categories);
 const categoryOptions = computed(() => activeLeafCategories(categoryCatalog.value).filter((category) => !collectionCategories(categoryCatalog.value).some((collection) => collection.id === category.id)));
 const availableCollections = computed(() => collectionCategories(categoryCatalog.value));
+const parentCategory = computed(() => categoryCatalog.value.find((category) => category.name === formData.value.category && category.status === "active"));
+function subcategorySaved(response, category) {
+    savedCategories.value = response.content.categories;
+    formData.value.category = category.name;
+    addingSubcategory.value = false;
+    errors.value.category = null;
+    emit("categories-saved", response);
+}
 const isEditing = ref(false);
 const formData = ref({
     title: "",
@@ -393,6 +408,7 @@ const onFileSelected = (event) => {
 };
 
 const onSubmit = () => {
+    if (addingSubcategory.value) return;
     if (validateForm()) {
         // Create a FormData object to send file data
         const form = new FormData();
