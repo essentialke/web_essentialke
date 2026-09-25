@@ -19,7 +19,7 @@
 
         <div>
             <label for="salePrice" class="block text-sm font-medium text-gray-700">Sale Price <span class="font-normal text-gray-500">(optional)</span></label>
-            <input id="salePrice" v-model="formData.salePrice" type="number" min="0" step="0.01" placeholder="Leave blank when not on sale" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" />
+            <input id="salePrice" v-model="formData.salePrice" type="number" min="0" step="0.01" placeholder="Leave blank when not on sale" class="number-input mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" />
             <p class="mt-1 text-xs text-gray-500">Must be lower than the regular price. Clearing it removes the product from Sale.</p>
             <span v-if="errors.salePrice" class="text-red-500 text-xs">{{ errors.salePrice }}</span>
         </div>
@@ -143,7 +143,7 @@
                 id="quantityShop"
                 v-model="formData.quantityShop"
                 required
-                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                class="number-input mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
             />
             <span v-if="errors.quantityShop" class="text-red-500 text-xs">{{
                 errors.quantityShop
@@ -195,7 +195,6 @@
             </button>
             <button
                 type="submit"
-                :disabled="addingCategory"
                 class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
             >
                 {{ isEditing ? 'Save product changes' : 'Add product' }}
@@ -203,6 +202,18 @@
         </div>
     </form>
 </template>
+
+<style scoped>
+.number-input::-webkit-inner-spin-button,
+.number-input::-webkit-outer-spin-button {
+    appearance: none;
+    margin: 0;
+}
+
+.number-input {
+    -moz-appearance: textfield;
+}
+</style>
 
 <script setup>
 import { ref, watch, onMounted, computed } from "vue";
