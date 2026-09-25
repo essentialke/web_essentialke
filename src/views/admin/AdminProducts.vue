@@ -209,6 +209,7 @@ const productHeaders = ref([
     { title: "ID", key: "id" },
     { title: "Title", key: "title" },
     { title: "Category", key: "category" },
+    { title: "Collection", key: "collection" },
     { title: "Price", key: "price" },
     { title: "Stock", key: "quantityShop" },
     { title: "Actions", key: "actions" },

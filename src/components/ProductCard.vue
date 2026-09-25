@@ -55,6 +55,12 @@
                 >
                     {{ product.category || "Fiction" }}
                 </span>
+                <span
+                    v-if="product.collection"
+                    class="ml-2 text-xs font-medium px-2.5 py-1 bg-gray-100 text-gray-700 rounded-full"
+                >
+                    {{ product.collection.replace(/ Collection$/i, "") }}
+                </span>
             </div>
 
             <!-- Title and Author -->
