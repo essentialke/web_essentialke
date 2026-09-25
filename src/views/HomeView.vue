@@ -6,7 +6,7 @@ import HeroSkeleton from "../components/sections/HeroSkeleton.vue";
 import HeroSection from "../components/sections/HeroSection.vue";
 import FeaturedProductsSection from "../components/sections/FeaturedProductsSection.vue";
 import { createImageSrcSet, resolveAssetUrl } from "../utils/assetUrl";
-import { copyDefaultCategories, isStorefrontCategory } from "../config/catalog";
+import { collectionCategories, copyDefaultCategories, isStorefrontCategory } from "../config/catalog";
 
 const latestProducts = ref([]);
 const bestSellers = ref([]);
@@ -57,6 +57,12 @@ const categoryTiles = computed(() => catalogCategories.value.filter((category) =
     id: category.id,
     name: category.name,
     image: productImage(matchingProduct(category.name || "", index)),
+})));
+const collectionTiles = computed(() => collectionCategories(catalogCategories.value).map((collection, index) => ({
+    id: collection.id,
+    queryName: collection.name,
+    name: collection.name.replace(/ Collection$/i, ""),
+    image: productImage(catalogProducts.value.find((product) => product.collection === collection.name) || matchingProduct(collection.name, index + 6)),
 })));
 const displayedBestSellers = computed(() => bestSellers.value.length ? bestSellers.value : catalogProducts.value.slice(0, 8));
 const giftImage = computed(() => productImage(matchingProduct("Gift Set", 0)) || productImage(catalogProducts.value[0]));
@@ -161,6 +167,19 @@ onBeforeUnmount(() => {
                 </div>
             </section>
 
+            <section v-if="collectionTiles.length" class="collections" aria-labelledby="collections-heading">
+                <div class="section-heading">
+                    <div><p class="kicker">Stories you can wear</p><h2 id="collections-heading">Explore collections</h2></div>
+                    <RouterLink to="/products">View all pieces <span>→</span></RouterLink>
+                </div>
+                <div class="collection-grid">
+                    <RouterLink v-for="collection in collectionTiles" :key="collection.id" :to="{ path: '/products', query: { collection: collection.queryName } }" class="collection-card">
+                        <img v-if="collection.image" :src="resolveAssetUrl(collection.image, { width: 720 })" :srcset="createImageSrcSet(collection.image, [320, 480, 720])" sizes="(max-width: 900px) 50vw, 25vw" :alt="`${collection.name} collection`" loading="lazy" />
+                        <div><p>{{ collection.name }}</p><span>Discover the pieces in this collection</span></div>
+                    </RouterLink>
+                </div>
+            </section>
+
             <section class="reviews">
                 <div class="review-heading"><p class="kicker">Worn and loved</p><h2>Loved by Our Customers</h2></div>
                 <div v-if="loading.testimonials" class="review-skeleton-grid" aria-hidden="true"><div v-for="n in 3" :key="n" class="review-skeleton"><SkeletonBlock class="review-stars-skeleton" /><SkeletonBlock /><SkeletonBlock /><SkeletonBlock class="review-short-skeleton" /><SkeletonBlock class="review-name-skeleton" /></div></div>
@@ -196,4 +215,5 @@ onBeforeUnmount(() => {
 @media(max-width:900px){.category-row{grid-template-columns:repeat(3,1fr);gap:28px 18px}.collection-grid{grid-template-columns:repeat(2,1fr)}.gift-banner{grid-template-columns:1fr}.gift-image{min-height:420px}.section-heading{align-items:flex-start}}
 @media(max-width:640px){.category-section{width:100%;max-width:none;padding-left:0;padding-right:0;overflow:hidden}.compact-heading{padding-left:16px;padding-right:16px}.category-row{display:flex;justify-content:flex-start;gap:8px;box-sizing:border-box;width:100vw;max-width:100vw;padding:0 12px 8px;overflow-x:scroll;overflow-y:hidden;scroll-snap-type:x proximity;scroll-padding-inline:12px;overscroll-behavior-x:contain;touch-action:pan-x pinch-zoom;-webkit-overflow-scrolling:touch;scrollbar-width:none}.category-row::-webkit-scrollbar{display:none}.category-row a{flex:0 0 clamp(104px,29vw,120px);min-width:0;white-space:normal;scroll-snap-align:start}.category-image{width:88px;height:88px;flex:0 0 88px}.reviews{box-sizing:border-box;width:100%;min-width:0;padding:40px 8px;overflow:hidden}.review-heading{width:100%;margin-bottom:20px;padding:0 8px}.review-heading .kicker{margin-bottom:10px}.review-heading h2{max-width:100%;font-size:29px;overflow-wrap:anywhere}.review-carousel{box-sizing:border-box;width:100%;min-width:0;padding:0 24px}.review-grid{width:100%;min-width:0}.review-grid article{min-width:0;max-width:calc(100% - 16px);min-height:250px;padding:20px 16px;overflow:hidden}.review-grid blockquote{max-width:100%;font-size:17px;line-height:1.45;margin:16px 0 22px;white-space:normal;overflow-wrap:anywhere}.review-grid footer{gap:8px;font-size:8px;flex-wrap:wrap}.stars{font-size:9px}.review-arrow{width:32px;height:32px;font-size:24px}}
 @media(max-width:520px){.category-section{max-width:none;padding:32px 0 36px;overflow:hidden}.compact-heading{text-align:left;margin-bottom:20px;padding:0 16px}.compact-heading h2{font-size:30px}.category-row a{gap:7px;min-height:44px;font-size:14px;line-height:1.2;text-align:center}.category-image{border:1px solid #ebe4da;box-shadow:0 5px 16px rgba(53,44,34,.07)}.collections{padding:56px 16px 64px}.collections .section-heading{display:block;padding:0;margin-bottom:26px}.section-heading>a{display:inline-flex;align-items:center;min-height:44px;margin-top:12px}.collection-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:0;overflow:visible}.collection-card{min-width:0;aspect-ratio:4/5}.collection-card div{left:12px;right:12px;bottom:14px}.collection-card p{font-size:21px}.collection-card span{font-size:9px}.gift-copy{padding:46px 16px}.gift-copy h2{font-size:34px}.gift-copy>a{display:flex;align-items:center;min-height:44px}.gift-image{min-height:240px;max-height:290px}.reviews{padding:40px 8px}.review-heading{margin-bottom:20px;padding:0 8px}.review-heading h2{font-size:29px}.review-heading .kicker{margin-bottom:10px}.review-carousel{padding:0 24px}.review-grid article{min-height:250px;padding:20px 16px}.review-grid blockquote{font-size:17px;line-height:1.45;margin:16px 0 22px}.review-grid footer{font-size:8px}.stars{font-size:9px}.review-arrow{width:32px;height:32px;font-size:24px}}
+.category-row{display:flex;flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;overflow-y:hidden;gap:22px;scrollbar-width:thin;overscroll-behavior-x:contain}.category-row a{flex:0 0 132px}
 </style>
