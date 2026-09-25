@@ -42,7 +42,18 @@ const matchingProduct = (label, index = 0) => {
         `${product.category || ""} ${product.title || ""}`.toLowerCase().includes(needle),
     ) || catalogProducts.value[index % Math.max(catalogProducts.value.length, 1)];
 };
-const categoryTiles = computed(() => catalogCategories.value.filter((category) => isStorefrontCategory(category)).map((category, index) => ({
+const collectionRoot = computed(() => catalogCategories.value.find((category) => category.slug === "collections"));
+const isCollectionCategory = (category) => {
+    const seen = new Set();
+    let current = category;
+    while (current && !seen.has(current.id)) {
+        if (current.id === collectionRoot.value?.id) return true;
+        seen.add(current.id);
+        current = catalogCategories.value.find((candidate) => candidate.id === current.parentId);
+    }
+    return false;
+};
+const categoryTiles = computed(() => catalogCategories.value.filter((category) => isStorefrontCategory(category) && !isCollectionCategory(category)).map((category, index) => ({
     id: category.id,
     name: category.name,
     image: productImage(matchingProduct(category.name || "", index)),
