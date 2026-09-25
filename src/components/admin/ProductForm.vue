@@ -45,11 +45,6 @@
                     {{ category.name }}
                 </option>
             </select>
-            <button v-if="!addingCategory" type="button" class="mt-2 text-sm underline" @click="addingCategory = true">+ Add a category or subcategory</button>
-            <div v-if="addingCategory" class="mt-3">
-                <CategoryEditor @saved="categorySaved" @cancel="addingCategory = false" />
-            </div>
-            <p v-if="categoryNotice" role="status" class="mt-2 text-sm text-green-700">{{ categoryNotice }}</p>
             <span v-if="errors.category" class="text-red-500 text-xs">{{
                 errors.category
             }}</span>
@@ -211,7 +206,6 @@
 
 <script setup>
 import { ref, watch, onMounted, computed } from "vue";
-import CategoryEditor from "./CategoryEditor.vue";
 import { activeLeafCategories, collectionCategories } from "../../config/catalog";
 
 const props = defineProps({
@@ -222,26 +216,11 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(["save", "cancel", "categories-saved"]);
-const addingCategory = ref(false);
-const categoryNotice = ref("");
+const emit = defineEmits(["save", "cancel"]);
 const savedCategories = ref(null);
 const categoryCatalog = computed(() => savedCategories.value || props.categories);
 const categoryOptions = computed(() => activeLeafCategories(categoryCatalog.value).filter((category) => !collectionCategories(categoryCatalog.value).some((collection) => collection.id === category.id)));
 const availableCollections = computed(() => collectionCategories(categoryCatalog.value));
-function categorySaved(response, category) {
-    savedCategories.value = response.content.categories;
-    if (category.status === "active") {
-        formData.value.category = category.name;
-        errors.value.category = null;
-    }
-    addingCategory.value = false;
-    categoryNotice.value = category.status === "active"
-        ? `${category.name} added and selected. Continue adding your product.`
-        : `${category.name} saved as hidden. Choose a visible category for this product.`;
-    emit("categories-saved", response);
-}
-
 const isEditing = ref(false);
 const formData = ref({
     title: "",
@@ -403,7 +382,6 @@ const onFileSelected = (event) => {
 };
 
 const onSubmit = () => {
-    if (addingCategory.value) return;
     if (validateForm()) {
         // Create a FormData object to send file data
         const form = new FormData();

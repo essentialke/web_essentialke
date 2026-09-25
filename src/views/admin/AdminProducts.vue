@@ -162,7 +162,6 @@
                 :categories="categories"
                 @save="saveProduct"
                 @cancel="closeModal"
-                @categories-saved="categories = activeLeafCategories($event.content.categories)"
             />
         </Modal>
     </div>
