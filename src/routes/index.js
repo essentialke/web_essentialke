@@ -164,9 +164,9 @@ const routes = [
         component: () => import("../views/admin/AdminCategories.vue"),
       },
       {
-        path: "content",
-        name: "AdminContent",
-        component: () => import("../views/admin/AdminContentView.vue"),
+        path: "collections",
+        name: "AdminCollections",
+        component: () => import("../views/admin/AdminCategories.vue"),
       },
       {
         path: "transactions",

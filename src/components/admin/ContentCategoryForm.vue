@@ -2,7 +2,7 @@
 import { computed, nextTick, ref } from 'vue';
 import CategoryEditor from './CategoryEditor.vue';
 import axios from 'axios';
-const props = defineProps({ content: { type: Object, default: null } });
+const props = defineProps({ content: { type: Object, default: null }, collectionOnly: { type: Boolean, default: false } });
 const emit = defineEmits(['saved', 'cancel']);
 const search = ref('');
 const editor = ref(null);
@@ -33,15 +33,19 @@ async function removeCategory() {
 const categories = computed(() => props.content?.categories || []);
 const rows = computed(() => {
     const result = [], seen = new Set();
+    const collectionRoot = categories.value.find(item => item.slug === 'collections');
+    const visibleCategories = props.collectionOnly && collectionRoot
+        ? categories.value.filter(item => item.id === collectionRoot.id || item.parentId === collectionRoot.id)
+        : categories.value;
     function visit(category, depth, path) {
         if (seen.has(category.id)) return;
         seen.add(category.id);
         const breadcrumb = [...path, category.name];
         result.push({ ...category, depth, breadcrumb: breadcrumb.join(' / ') });
-        categories.value.filter(item => item.parentId === category.id).forEach(item => visit(item, depth + 1, breadcrumb));
+        visibleCategories.filter(item => item.parentId === category.id).forEach(item => visit(item, depth + 1, breadcrumb));
     }
-    categories.value.filter(item => item.parentId === null).forEach(item => visit(item, 0, []));
-    categories.value.filter(item => !seen.has(item.id)).forEach(item => visit(item, 0, []));
+    visibleCategories.filter(item => item.parentId === null).forEach(item => visit(item, 0, []));
+    visibleCategories.filter(item => !seen.has(item.id)).forEach(item => visit(item, 0, []));
     return result.filter(item => item.breadcrumb.toLowerCase().includes(search.value.trim().toLowerCase()));
 });
 async function openEditor(category = null, parentId = null, type = 'category') {

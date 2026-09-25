@@ -55,7 +55,6 @@ onMounted(load);
 
 <template>
     <div class="container mx-auto px-2 sm:px-4 py-5 sm:py-8">
-        <div class="mb-6"><h1 class="text-2xl font-bold text-gray-900">Storefront</h1><p class="mt-1 text-sm text-gray-500">Manage homepage merchandising and copy within layout-safe limits.</p></div>
         <nav class="tabs" aria-label="Storefront sections"><button v-for="tab in tabs" :key="tab.id" type="button" :class="{ active: activeTab === tab.id }" @click="activeTab = tab.id">{{ tab.label }}</button></nav>
         <div v-if="loading" class="py-16 text-center text-gray-500">Loading storefront content…</div>
         <template v-else>
