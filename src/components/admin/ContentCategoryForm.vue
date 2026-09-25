@@ -34,9 +34,19 @@ const categories = computed(() => props.content?.categories || []);
 const rows = computed(() => {
     const result = [], seen = new Set();
     const collectionRoot = categories.value.find(item => item.slug === 'collections');
-    const visibleCategories = props.collectionOnly && collectionRoot
-        ? categories.value.filter(item => item.id === collectionRoot.id || item.parentId === collectionRoot.id)
-        : categories.value;
+    const isCollectionBranch = (category) => {
+        const seen = new Set();
+        let current = category;
+        while (current && !seen.has(current.id)) {
+            if (current.id === collectionRoot?.id) return true;
+            seen.add(current.id);
+            current = categories.value.find(item => item.id === current.parentId);
+        }
+        return false;
+    };
+    const visibleCategories = props.collectionOnly
+        ? categories.value.filter(isCollectionBranch)
+        : categories.value.filter(category => !isCollectionBranch(category));
     function visit(category, depth, path) {
         if (seen.has(category.id)) return;
         seen.add(category.id);
@@ -78,7 +88,7 @@ function saved(response, category) { emit('saved', response, category); closeEdi
                     <div><strong>{{ category.name }}</strong><small v-if="category.depth">{{ category.breadcrumb }}</small><small v-else>Main category</small></div>
                     <span v-if="category.status !== 'active'" class="badge">Hidden</span>
                 </div>
-                <div class="row-actions"><button v-if="category.slug === 'collections'" type="button" :disabled="Boolean(editor) || Boolean(deleteTarget)" @click="openEditor(null, category.id, 'collection')">+ Add collection</button><button v-else type="button" :disabled="Boolean(editor) || Boolean(deleteTarget)" @click="openEditor(null, category.id)">+ Add subcategory<span class="sr-only"> under {{ category.name }}</span></button><button type="button" :disabled="Boolean(editor) || Boolean(deleteTarget)" @click="openEditor(category)">Edit<span class="sr-only"> {{ category.name }}</span></button><button type="button" class="delete-button" :disabled="Boolean(editor) || Boolean(deleteTarget)" @click="deleteTarget = category; error = ''">Delete<span class="sr-only"> {{ category.name }}</span></button></div>
+                <div class="row-actions"><button v-if="category.slug === 'collections'" type="button" :disabled="Boolean(editor) || Boolean(deleteTarget)" @click="openEditor(null, category.id, 'collection')">+ Add collection</button><button v-else-if="!props.collectionOnly" type="button" :disabled="Boolean(editor) || Boolean(deleteTarget)" @click="openEditor(null, category.id)">+ Add subcategory<span class="sr-only"> under {{ category.name }}</span></button><button type="button" :disabled="Boolean(editor) || Boolean(deleteTarget)" @click="openEditor(category)">Edit<span class="sr-only"> {{ category.name }}</span></button><button type="button" class="delete-button" :disabled="Boolean(editor) || Boolean(deleteTarget)" @click="deleteTarget = category; error = ''">Delete<span class="sr-only"> {{ category.name }}</span></button></div>
             </div>
             <div v-if="!rows.length" class="empty"><p>{{ categories.length ? 'No matching categories.' : 'Start with your first category.' }}</p><p v-if="!categories.length">Add a main category, then add subcategories beneath it.</p></div>
         </div>

@@ -1,9 +1,9 @@
 <script setup>
-import { RouterLink, RouterView } from "vue-router";
+import { RouterLink, RouterView, useRoute } from "vue-router";
 import Navbar from "./components/NavBar.vue";
 import Footer from "./components/Footer.vue";
 import Snackbar from "./components/Snackbar.vue";
-import { ref, onMounted } from "vue";
+import { computed, ref, onMounted } from "vue";
 import { useSnackbarStore } from "./stores/snackbar";
 import axios from "axios";
 import LoginRequiredOverlay from "./components/LoginRequiredOverlay.vue";
@@ -11,6 +11,8 @@ import LoginRequiredOverlay from "./components/LoginRequiredOverlay.vue";
 const snackbarRef = ref(null);
 const snackbarStore = useSnackbarStore();
 const footerContent = ref(null);
+const route = useRoute();
+const isAdminRoute = computed(() => route.path.startsWith("/admin"));
 
 onMounted(async () => {
     // Expose the addSnackbar method globally (optional)
@@ -43,7 +45,7 @@ onMounted(async () => {
 
 <template>
     <div class="min-h-screen w-full min-w-0 overflow-x-hidden flex flex-col">
-        <Navbar />
+        <Navbar v-if="!isAdminRoute" />
         <main class="min-w-0 w-full flex-grow">
             <RouterView />
         </main>
