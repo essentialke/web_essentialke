@@ -30,10 +30,10 @@ export const DEFAULT_STOREFRONT_CONTENT = {
         visibility: Object.fromEntries(STOREFRONT_SECTION_IDS.map((id) => [id, true])),
     },
     featuredCollections: [
-        { categoryId: 10, description: "A verse of protection, worn close." },
-        { categoryId: 11, description: "A quiet reminder that ease follows hardship." },
-        { categoryId: 9, description: "Made for the strength that keeps you grounded." },
-        { categoryId: 12, description: "A celebration of becoming and beginning again." },
+        { categoryId: 10, linkedCategoryId: 1, description: "A verse of protection, worn close." },
+        { categoryId: 11, linkedCategoryId: 1, description: "A quiet reminder that ease follows hardship." },
+        { categoryId: 9, linkedCategoryId: 1, description: "Made for the strength that keeps you grounded." },
+        { categoryId: 12, linkedCategoryId: 1, description: "A celebration of becoming and beginning again." },
     ],
     quickNavCategoryIds: [1, 4, 3, 2, 7, 6],
     headings: {
@@ -45,6 +45,9 @@ export const DEFAULT_STOREFRONT_CONTENT = {
 
 export const normalizeStorefrontContent = (content) => {
     const value = content || {};
+    const featuredCollections = Array.isArray(value.featuredCollections)
+        ? value.featuredCollections.map((item) => ({ ...item, linkedCategoryId: item.linkedCategoryId ?? "" }))
+        : DEFAULT_STOREFRONT_CONTENT.featuredCollections;
     return {
         ...structuredClone(DEFAULT_STOREFRONT_CONTENT),
         ...value,
@@ -53,6 +56,7 @@ export const normalizeStorefrontContent = (content) => {
             order: Array.isArray(value.sections?.order) ? value.sections.order : [...STOREFRONT_SECTION_IDS],
             visibility: { ...DEFAULT_STOREFRONT_CONTENT.sections.visibility, ...value.sections?.visibility },
         },
+        featuredCollections,
         headings: {
             bestSellers: { ...DEFAULT_STOREFRONT_CONTENT.headings.bestSellers, ...value.headings?.bestSellers },
             featuredCollections: { ...DEFAULT_STOREFRONT_CONTENT.headings.featuredCollections, ...value.headings?.featuredCollections },

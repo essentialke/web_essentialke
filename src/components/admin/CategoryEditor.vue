@@ -3,7 +3,7 @@ import { computed, nextTick, onMounted, ref } from "vue";
 import axios from "axios";
 import { copyDefaultCategories } from "../../config/catalog";
 
-const props = defineProps({ category: { type: Object, default: null }, parentId: { type: Number, default: null } });
+const props = defineProps({ category: { type: Object, default: null }, parentId: { type: Number, default: null }, type: { type: String, default: "category" } });
 const emit = defineEmits(["saved", "cancel"]);
 const catalog = ref([]);
 const loading = ref(true);
@@ -16,7 +16,7 @@ const status = ref(props.category?.status || "active");
 const slug = ref(props.category?.slug || "");
 const customSlug = ref(Boolean(props.category));
 const generatedSlug = computed(() => name.value.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""));
-const title = computed(() => props.category ? "Edit category" : parentId.value === null ? "Add category" : "Add subcategory");
+const title = computed(() => props.category ? "Edit category" : props.type === "collection" ? "Add collection" : parentId.value === null ? "Add category" : "Add subcategory");
 function isDescendant(candidate, categories) {
     const seen = new Set();
     while (candidate && !seen.has(candidate.id)) {
@@ -83,7 +83,7 @@ onMounted(load);
         <p v-if="loading" role="status">Loading categories...</p>
         <template v-else>
             <fieldset :disabled="saving">
-                <label>Category name<input ref="nameInput" v-model="name" type="text" placeholder="e.g. Necklaces or Initial Pendants" @keydown.enter.prevent="save" /></label>
+                <label>{{ props.type === "collection" ? "Collection name" : "Category name" }}<input ref="nameInput" v-model="name" type="text" :placeholder="props.type === 'collection' ? 'e.g. Everyday Collection' : 'e.g. Necklaces or Initial Pendants'" @keydown.enter.prevent="save" /></label>
                 <label>Place under<select v-model="parentId"><option :value="null">None — main category</option><option v-for="parent in parents" :key="parent.id" :value="parent.id">{{ parentLabel(parent) }}</option></select></label>
                 <p class="help">Choose a parent to make this a subcategory. It will appear inside that category in Shop.</p>
                 <details>
@@ -94,7 +94,7 @@ onMounted(load);
                 </details>
             </fieldset>
             <p v-if="error" role="alert" class="error">{{ error }} <button type="button" @click="load" :disabled="saving">Reload categories</button></p>
-            <div class="actions"><button type="button" :disabled="saving" @click="emit('cancel')">Cancel</button><button type="button" class="primary" :disabled="saving" @click="save">{{ saving ? 'Saving...' : props.category ? 'Save changes' : parentId === null ? 'Add category' : 'Add subcategory' }}</button></div>
+            <div class="actions"><button type="button" :disabled="saving" @click="emit('cancel')">Cancel</button><button type="button" class="primary" :disabled="saving" @click="save">{{ saving ? 'Saving...' : props.category ? 'Save changes' : props.type === 'collection' ? 'Add collection' : parentId === null ? 'Add category' : 'Add subcategory' }}</button></div>
         </template>
     </section>
 </template>

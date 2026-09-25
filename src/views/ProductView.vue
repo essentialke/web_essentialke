@@ -13,12 +13,14 @@ const currentPage = ref(1);
 const pageSize = ref(12);
 const totalProducts = ref(0);
 const selectedCategory = ref("");
+const selectedCollection = ref("");
 const minPrice = ref("");
 const maxPrice = ref("");
 const selectedAuthor = ref("");
 const selectedSortBy = ref("");
 const selectedSortOrder = ref("asc");
 const isMobileFilterOpen = ref(false);
+const showFilterPanel = ref(false);
 const onSale = ref(false);
 
 // Replace hardcoded categories with a dynamic ref
@@ -28,6 +30,7 @@ const categories = ref([]);
 const hasActiveFilters = computed(() => {
     return (
         selectedCategory.value ||
+        selectedCollection.value ||
         minPrice.value ||
         maxPrice.value ||
         selectedAuthor.value ||
@@ -89,6 +92,7 @@ const paginationArray = computed(() => {
 
 onMounted(async () => {
     selectedCategory.value = route.query.category?.toString() || "";
+    selectedCollection.value = route.query.collection?.toString() || "";
     selectedSortBy.value = route.query.sortBy?.toString() || "";
     selectedSortOrder.value = route.query.sortOrder?.toString() || "asc";
     onSale.value = route.query.onSale === "true";
@@ -145,6 +149,7 @@ async function loadProducts() {
                 page: currentPage.value,
                 limit: pageSize.value,
                 category: selectedCategory.value,
+                collection: selectedCollection.value,
                 featured: route.query.featured === "true" ? true : undefined,
                 minPrice: minPrice.value,
                 maxPrice: maxPrice.value,
@@ -187,6 +192,7 @@ function goToPage(page) {
 
 function resetFilters() {
     selectedCategory.value = "";
+    selectedCollection.value = "";
     minPrice.value = "";
     maxPrice.value = "";
     selectedAuthor.value = "";
@@ -207,6 +213,10 @@ function closeMobileFilter() {
     if (window.innerWidth < 1024) {
         isMobileFilterOpen.value = false;
     }
+}
+
+function toggleFilterPanel() {
+    showFilterPanel.value = !showFilterPanel.value;
 }
 
 function selectCategory(categoryName) {
@@ -238,6 +248,7 @@ watch(
     () => route.query,
     async (query) => {
         selectedCategory.value = query.category?.toString() || "";
+        selectedCollection.value = query.collection?.toString() || "";
         selectedSortBy.value = query.sortBy?.toString() || "";
         selectedSortOrder.value = query.sortOrder?.toString() || "asc";
         onSale.value = query.onSale === "true";
@@ -251,16 +262,116 @@ watch(
     <div class="min-h-screen bg-white py-6 sm:py-8 md:py-12">
         <div class="container mx-auto px-4 max-w-7xl">
             <!-- Header Section -->
-            <h1
-                class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-5 md:mb-8 tracking-tight"
-            >
-                Explore jewelry
-                <span
-                    class="block text-base md:text-lg font-normal text-gray-600 mt-2"
+            <div class="flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:mb-8">
+                <h1
+                    class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 tracking-tight"
                 >
-                    Find a piece made to stay with you
-                </span>
-            </h1>
+                    Explore jewelry
+                    <span
+                        class="block text-base md:text-lg font-normal text-gray-600 mt-2"
+                    >
+                        Find a piece made to stay with you
+                    </span>
+                </h1>
+
+                <button
+                    type="button"
+                    @click="toggleFilterPanel"
+                    class="inline-flex items-center justify-center rounded-xl border border-[#d7d0c5] bg-[#f6f2ed] px-5 py-3 text-base font-medium text-[#1b2430] shadow-sm transition hover:bg-[#efe8df]"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="mr-2 h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M3 5h18M6 12h12M10 19h4"
+                        />
+                    </svg>
+                    Filters
+                </button>
+            </div>
+
+            <div v-if="showFilterPanel" class="mb-6 rounded-2xl border border-[#d9d0c5] bg-[#f7f4f0] p-5 shadow-sm">
+                <div class="grid gap-4 lg:grid-cols-3">
+                    <div>
+                        <label class="mb-2 block text-2xl font-normal text-[#2b3137]">Title</label>
+                        <input
+                            v-model="selectedAuthor"
+                            type="text"
+                            placeholder="Search by title"
+                            class="w-full rounded-xl border border-[#d5cfc5] bg-white px-4 py-3 text-lg text-[#2b3137] placeholder:text-[#7d7a75] focus:border-[#7ca9d8] focus:outline-none focus:ring-2 focus:ring-[#dfeaf7]"
+                        />
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-2xl font-normal text-[#2b3137]">Category</label>
+                        <select
+                            v-model="selectedCategory"
+                            class="w-full appearance-none rounded-xl border border-[#d5cfc5] bg-white px-4 py-3 text-lg text-[#2b3137] focus:border-[#7ca9d8] focus:outline-none focus:ring-2 focus:ring-[#dfeaf7]"
+                        >
+                            <option value="">All Categories</option>
+                            <option v-for="category in categories" :key="category.id" :value="category.name">
+                                {{ category.name }}
+                            </option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-2xl font-normal text-[#2b3137]">Shop Stock</label>
+                        <select
+                            v-model="onSale"
+                            class="w-full appearance-none rounded-xl border border-[#d5cfc5] bg-white px-4 py-3 text-lg text-[#2b3137] focus:border-[#7ca9d8] focus:outline-none focus:ring-2 focus:ring-[#dfeaf7]"
+                        >
+                            <option :value="false">All</option>
+                            <option :value="true">On Sale</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mt-6 grid gap-4 lg:grid-cols-2">
+                    <div>
+                        <label class="mb-2 block text-2xl font-normal text-[#2b3137]">Min Price</label>
+                        <input
+                            v-model="minPrice"
+                            type="number"
+                            min="0"
+                            placeholder="KSh 0"
+                            class="w-full rounded-xl border border-[#d5cfc5] bg-white px-4 py-3 text-lg text-[#2b3137] placeholder:text-[#7d7a75] focus:border-[#7ca9d8] focus:outline-none focus:ring-2 focus:ring-[#dfeaf7]"
+                        />
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-2xl font-normal text-[#2b3137]">Max Price</label>
+                        <input
+                            v-model="maxPrice"
+                            type="number"
+                            min="0"
+                            placeholder="KSh 999"
+                            class="w-full rounded-xl border border-[#d5cfc5] bg-white px-4 py-3 text-lg text-[#2b3137] placeholder:text-[#7d7a75] focus:border-[#7ca9d8] focus:outline-none focus:ring-2 focus:ring-[#dfeaf7]"
+                        />
+                    </div>
+                </div>
+
+                <div class="mt-6 flex items-center justify-end gap-3">
+                    <button
+                        type="button"
+                        @click="resetFilters"
+                        class="rounded-xl bg-[#e6e1db] px-6 py-3 text-xl font-semibold text-[#2d3a42] transition hover:bg-[#d9d2ca]"
+                    >
+                        Reset Filters
+                    </button>
+                    <button
+                        type="button"
+                        @click="applyFilterAndClose"
+                        class="rounded-xl bg-[#0c7ae6] px-6 py-3 text-xl font-semibold text-white shadow-sm transition hover:bg-[#0a68c9]"
+                    >
+                        Apply Filters
+                    </button>
+                </div>
+            </div>
 
             <!-- Main Content with Sidebar Layout -->
             <div class="flex flex-col lg:flex-row gap-6 md:gap-8">
@@ -631,6 +742,11 @@ watch(
                                     />
                                 </svg>
                             </button>
+                        </div>
+
+                        <div v-if="selectedCollection" class="filter-tag">
+                            <span>{{ selectedCollection }}</span>
+                            <button @click="selectedCollection = ''; handleFilterChange()" class="ml-1" aria-label="Remove collection filter">×</button>
                         </div>
 
                         <div v-if="minPrice || maxPrice" class="filter-tag">
