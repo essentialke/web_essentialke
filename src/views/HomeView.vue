@@ -7,7 +7,6 @@ import HeroSection from "../components/sections/HeroSection.vue";
 import FeaturedProductsSection from "../components/sections/FeaturedProductsSection.vue";
 import { createImageSrcSet, resolveAssetUrl } from "../utils/assetUrl";
 import { copyDefaultCategories, isStorefrontCategory } from "../config/catalog";
-import { DEFAULT_STOREFRONT_CONTENT, normalizeStorefrontContent } from "../config/storefront";
 
 const latestProducts = ref([]);
 const bestSellers = ref([]);
@@ -15,16 +14,17 @@ const catalogProducts = ref([]);
 const heroContent = ref(null);
 const testimonialsContent = ref(null);
 const catalogCategories = ref(copyDefaultCategories());
-const storefrontContent = ref(normalizeStorefrontContent(DEFAULT_STOREFRONT_CONTENT));
-const loading = reactive({ products: true, featured: true, catalog: true, hero: true, testimonials: true, categories: true, storefront: true });
+const loading = reactive({ products: true, featured: true, catalog: true, hero: true, testimonials: true, categories: true });
 const isLoading = computed(() => Object.values(loading).some(Boolean));
-const categoryLoading = computed(() => loading.catalog || loading.categories || loading.storefront);
+const categoryLoading = computed(() => loading.catalog || loading.categories);
 const bestSellersLoading = computed(() => loading.featured || (!bestSellers.value.length && loading.catalog));
+
 async function loadSection(key, url, apply, params) {
     try { const response = await axios.get(url, { params, timeout: 15000 }); apply(response.data); }
     catch (error) { console.warn('Could not load homepage section: ' + key, error); }
     finally { loading[key] = false; }
 }
+
 onMounted(() => {
     loadSection('products', '/products', data => { latestProducts.value = data.products || []; }, { sortBy: 'createdAt', sortOrder: 'desc', page: 1, limit: 4, view: 'cards', includeTotal: false });
     loadSection('featured', '/products', data => { bestSellers.value = data.products || []; }, { featured: true, page: 1, limit: 4, view: 'cards', includeTotal: false });
@@ -32,7 +32,6 @@ onMounted(() => {
     loadSection('hero', '/contents/hero', data => { heroContent.value = data.content || null; });
     loadSection('testimonials', '/contents/testimonials', data => { testimonialsContent.value = data.content || null; });
     loadSection('categories', '/contents/categories', data => { catalogCategories.value = data.content?.categories || copyDefaultCategories(); });
-    loadSection('storefront', '/contents/storefront', data => { storefrontContent.value = normalizeStorefrontContent(data.content); });
 });
 
 const categoryById = (id) => catalogCategories.value.find((category) => category.id === id);
@@ -43,18 +42,13 @@ const matchingProduct = (label, index = 0) => {
         `${product.category || ""} ${product.title || ""}`.toLowerCase().includes(needle),
     ) || catalogProducts.value[index % Math.max(catalogProducts.value.length, 1)];
 };
-const categoryTiles = computed(() => storefrontContent.value.quickNavCategoryIds.filter(id => isStorefrontCategory(categoryById(id))).map((id, index) => {
-    const category = categoryById(id);
-    return { id, name: category?.name || "Category", image: productImage(matchingProduct(category?.name || "", index)) };
-}));
-const collectionTiles = computed(() => storefrontContent.value.featuredCollections.map((item, index) => {
-    const category = categoryById(item.categoryId);
-    return { id: item.categoryId, name: category?.name?.replace(/ Collection$/i, "") || "Collection", query: category?.name || "Collections", copy: item.description, image: productImage(matchingProduct(category?.name || "", index + 6)) };
-}));
+const categoryTiles = computed(() => catalogCategories.value.filter((category) => isStorefrontCategory(category)).map((category, index) => ({
+    id: category.id,
+    name: category.name,
+    image: productImage(matchingProduct(category.name || "", index)),
+})));
 const displayedBestSellers = computed(() => bestSellers.value.length ? bestSellers.value : catalogProducts.value.slice(0, 8));
 const giftImage = computed(() => productImage(matchingProduct("Gift Set", 0)) || productImage(catalogProducts.value[0]));
-const isVisible = (id) => storefrontContent.value.sections.visibility[id] !== false;
-const sectionStyle = (id) => ({ order: storefrontContent.value.sections.order.indexOf(id) + 1 });
 const defaultTestimonials = [
     { id: "amina", name: "Amina K.", quote: "The finish is beautiful and understated. It has become the piece I reach for every morning.", rating: 5, verified: true },
     { id: "caroline", name: "Caroline M.", quote: "Even more delicate in person, yet it feels made to last. The packaging was lovely too.", rating: 5, verified: true },
@@ -123,60 +117,55 @@ onBeforeUnmount(() => {
         <HeroSkeleton v-if="loading.hero" />
         <HeroSection v-else :content="heroContent" />
         <div class="homepage-flow">
-        <section v-if="isVisible('quickNav')" class="category-section" :style="sectionStyle('quickNav')" aria-labelledby="category-heading">
-            <div class="compact-heading">
-                <p class="kicker">Find your piece</p>
-                <h2 id="category-heading">Shop by category</h2>
-            </div>
-            <div v-if="categoryLoading" class="category-row skeleton-categories" aria-hidden="true"><div v-for="n in 6" :key="n"><SkeletonBlock class="category-image" /><SkeletonBlock class="category-label-skeleton" /></div></div>
-            <nav v-else class="category-row" aria-label="Shop by category">
-                <RouterLink v-for="category in categoryTiles" :key="category.name" :to="{ path: '/products', query: { category: category.name } }">
-                    <span class="category-image"><img v-if="category.image" :src="resolveAssetUrl(category.image, { width: 320 })" :srcset="createImageSrcSet(category.image, [160, 240, 320])" sizes="132px" alt="" loading="lazy" /></span>
-                    <span>{{ category.name }}</span>
-                </RouterLink>
-            </nav>
-        </section>
-
-        <FeaturedProductsSection v-if="isVisible('bestSellers')" :style="sectionStyle('bestSellers')" :loading="bestSellersLoading || loading.storefront" :products="displayedBestSellers" :kicker="storefrontContent.headings.bestSellers.kicker" :title="storefrontContent.headings.bestSellers.title" :limit="4" />
-
-        <section v-if="isVisible('featuredCollections')" class="collections" :style="sectionStyle('featuredCollections')" aria-labelledby="collections-heading">
-            <div class="section-heading">
-                <div><p class="kicker">{{ storefrontContent.headings.featuredCollections.kicker }}</p><h2 id="collections-heading">{{ storefrontContent.headings.featuredCollections.title }}</h2></div>
-                <RouterLink :to="{ path: '/products', query: { category: 'Collections' } }">View all collections <span>→</span></RouterLink>
-            </div>
-            <div v-if="categoryLoading" class="collection-grid" aria-hidden="true"><SkeletonBlock v-for="n in 4" :key="n" class="skeleton-collection" /></div>
-            <div v-else class="collection-grid">
-                <RouterLink v-for="collection in collectionTiles" :key="collection.name" :to="{ path: '/products', query: { category: collection.query } }" class="collection-card">
-                    <img v-if="collection.image" :src="resolveAssetUrl(collection.image, { width: 720 })" :srcset="createImageSrcSet(collection.image, [320, 480, 720])" sizes="(max-width: 900px) 50vw, 25vw" :alt="`${collection.name} collection`" loading="lazy" />
-                    <div><p>{{ collection.name }}</p><span>{{ collection.copy }}</span></div>
-                </RouterLink>
-            </div>
-        </section>
-
-        <FeaturedProductsSection v-if="isVisible('newArrivals')" :style="sectionStyle('newArrivals')" :loading="loading.products || loading.storefront" :products="latestProducts" :kicker="storefrontContent.headings.newArrivals.kicker" :title="storefrontContent.headings.newArrivals.title" :limit="4" secondary />
-
-        <section v-if="isVisible('gifting')" class="gift-banner" :style="sectionStyle('gifting')">
-            <div class="gift-copy"><p class="kicker">{{ storefrontContent.gifting.eyebrow }}</p><h2>{{ storefrontContent.gifting.heading }}</h2><p>{{ storefrontContent.gifting.body }}</p><RouterLink :to="storefrontContent.gifting.ctaRoute">{{ storefrontContent.gifting.ctaLabel }} <span>→</span></RouterLink></div>
-            <div class="gift-image"><SkeletonBlock v-if="loading.catalog" class="gift-skeleton" /><img v-else-if="giftImage" :src="resolveAssetUrl(giftImage, { width: 1280 })" :srcset="createImageSrcSet(giftImage, [480, 768, 1024, 1280])" sizes="(max-width: 900px) 100vw, 50vw" alt="Essential jewelry gift selection" loading="lazy" /></div>
-        </section>
-
-        <section v-if="isVisible('testimonials')" class="reviews" :style="sectionStyle('testimonials')">
-            <div class="review-heading"><p class="kicker">Worn and loved</p><h2>Loved by Our Customers</h2></div>
-            <div v-if="loading.testimonials" class="review-skeleton-grid" aria-hidden="true"><div v-for="n in 3" :key="n" class="review-skeleton"><SkeletonBlock class="review-stars-skeleton" /><SkeletonBlock /><SkeletonBlock /><SkeletonBlock class="review-short-skeleton" /><SkeletonBlock class="review-name-skeleton" /></div></div>
-            <div v-else class="review-carousel" @mouseenter="stopTestimonials" @mouseleave="startTestimonials">
-                <div class="review-grid" :style="carouselStyle" @transitionend="normalizeCarousel">
-                    <article v-for="(testimonial, index) in carouselItems" :key="`${testimonial.id || testimonial.name}-${index}`">
-                        <div class="stars">{{ "★".repeat(testimonial.rating || 5) }}</div>
-                        <blockquote>“{{ testimonial.quote }}”</blockquote>
-                        <footer><b>{{ testimonial.name }}</b><span v-if="testimonial.verified">✓ Verified buyer</span></footer>
-                    </article>
+            <section class="category-section" aria-labelledby="category-heading">
+                <div class="compact-heading">
+                    <p class="kicker">Find your piece</p>
+                    <h2 id="category-heading">Shop by category</h2>
                 </div>
-                <button class="review-arrow review-arrow-left" type="button" aria-label="Previous testimonial" @click="previousTestimonial">‹</button>
-                <button class="review-arrow review-arrow-right" type="button" aria-label="Next testimonial" @click="nextTestimonial">›</button>
-            </div>
-        </section>
-        </div>
+                <div v-if="categoryLoading" class="category-row skeleton-categories" aria-hidden="true">
+                    <div v-for="n in 6" :key="n"><SkeletonBlock class="category-image" /><SkeletonBlock class="category-label-skeleton" /></div>
+                </div>
+                <nav v-else class="category-row" aria-label="Shop by category">
+                    <RouterLink v-for="category in categoryTiles" :key="category.name" :to="{ path: '/products', query: { category: category.name } }">
+                        <span class="category-image"><img v-if="category.image" :src="resolveAssetUrl(category.image, { width: 320 })" :srcset="createImageSrcSet(category.image, [160, 240, 320])" sizes="132px" alt="" loading="lazy" /></span>
+                        <span>{{ category.name }}</span>
+                    </RouterLink>
+                </nav>
+            </section>
 
+            <FeaturedProductsSection :loading="bestSellersLoading" :products="displayedBestSellers" kicker="Popular picks" title="Bestsellers" :limit="4" />
+
+            <FeaturedProductsSection :loading="loading.products" :products="latestProducts" kicker="Fresh arrivals" title="New Arrivals" :limit="4" secondary />
+
+            <section class="gift-banner">
+                <div class="gift-copy">
+                    <p class="kicker">Gift with meaning</p>
+                    <h2>Beautifully paired, ready to give.</h2>
+                    <p>Thoughtful jewelry bundles curated for birthdays, milestones, celebrations, and the moments in between.</p>
+                    <RouterLink :to="{ path: '/gifting' }">Explore gift bundles <span>→</span></RouterLink>
+                </div>
+                <div class="gift-image">
+                    <SkeletonBlock v-if="loading.catalog" class="gift-skeleton" />
+                    <img v-else-if="giftImage" :src="resolveAssetUrl(giftImage, { width: 1280 })" :srcset="createImageSrcSet(giftImage, [480, 768, 1024, 1280])" sizes="(max-width: 900px) 100vw, 50vw" alt="Essential jewelry gift selection" loading="lazy" />
+                </div>
+            </section>
+
+            <section class="reviews">
+                <div class="review-heading"><p class="kicker">Worn and loved</p><h2>Loved by Our Customers</h2></div>
+                <div v-if="loading.testimonials" class="review-skeleton-grid" aria-hidden="true"><div v-for="n in 3" :key="n" class="review-skeleton"><SkeletonBlock class="review-stars-skeleton" /><SkeletonBlock /><SkeletonBlock /><SkeletonBlock class="review-short-skeleton" /><SkeletonBlock class="review-name-skeleton" /></div></div>
+                <div v-else class="review-carousel" @mouseenter="stopTestimonials" @mouseleave="startTestimonials">
+                    <div class="review-grid" :style="carouselStyle" @transitionend="normalizeCarousel">
+                        <article v-for="(testimonial, index) in carouselItems" :key="`${testimonial.id || testimonial.name}-${index}`">
+                            <div class="stars">{{ "★".repeat(testimonial.rating || 5) }}</div>
+                            <blockquote>“{{ testimonial.quote }}”</blockquote>
+                            <footer><b>{{ testimonial.name }}</b><span v-if="testimonial.verified">✓ Verified buyer</span></footer>
+                        </article>
+                    </div>
+                    <button class="review-arrow review-arrow-left" type="button" aria-label="Previous testimonial" @click="previousTestimonial">‹</button>
+                    <button class="review-arrow review-arrow-right" type="button" aria-label="Next testimonial" @click="nextTestimonial">›</button>
+                </div>
+            </section>
+        </div>
     </div>
 </template>
 
