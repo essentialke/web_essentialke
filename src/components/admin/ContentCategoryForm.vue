@@ -5,6 +5,7 @@ import axios from 'axios';
 const props = defineProps({ content: { type: Object, default: null }, collectionOnly: { type: Boolean, default: false } });
 const emit = defineEmits(['saved', 'cancel']);
 const search = ref('');
+const filterOpen = ref(false);
 const editor = ref(null);
 const editorHost = ref(null);
 const addButton = ref(null);
@@ -68,7 +69,8 @@ function saved(response, category) { emit('saved', response, category); closeEdi
 <template>
     <section class="category-manager">
         <div class="toolbar">
-            <label class="search">Find a category<input v-model="search" type="search" placeholder="Search categories or subcategories" /></label>
+            <button type="button" class="filter-toggle" :aria-expanded="filterOpen" @click="filterOpen = !filterOpen">{{ filterOpen ? 'Hide filter' : 'Filter' }}</button>
+            <label v-if="filterOpen" class="search">Find a category<input v-model="search" type="search" placeholder="Search categories or subcategories" /></label>
             <button ref="addButton" type="button" class="primary" :disabled="Boolean(editor) || Boolean(deleteTarget)" @click="openEditor()">+ Add category</button>
         </div>
         <div v-if="editor" ref="editorHost">
@@ -96,5 +98,5 @@ function saved(response, category) { emit('saved', response, category); closeEdi
 </template>
 <style scoped>
 .delete-confirm{background:#fff7f4;border:1px solid #edc9bd;padding:20px;border-radius:10px}.delete-confirm p{font-size:14px;margin:10px 0}.delete-confirm [role=alert],.row-actions .delete-button,.delete-button{color:#b42318}.row-actions{flex-wrap:wrap}
-.category-manager{display:grid;gap:20px}.toolbar{display:flex;align-items:flex-end;gap:16px;justify-content:space-between}.search{display:grid;gap:6px;font-size:13px;color:#625b51;max-width:440px;flex:1}.search input{min-height:44px;padding:10px 12px;border:1px solid #ddd5c9;border-radius:7px;background:white;width:100%}button{min-height:44px;padding:8px 14px;font-size:13px;border-radius:6px}.primary{background:#292720;color:white;white-space:nowrap}.category-list{background:white;border:1px solid #e8e2d8;border-radius:12px;overflow:hidden}.category-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;border-bottom:1px solid #eee9e1}.category-row:last-child{border:0}.category-info{display:flex;align-items:center;gap:12px;min-width:0}strong{font-size:14px;font-weight:600;overflow-wrap:anywhere}small{display:block;font-size:12px;color:#81796f;margin-top:3px;overflow-wrap:anywhere}.branch{color:#ac9672}.row-actions{display:flex;gap:6px;flex-shrink:0}.row-actions button{color:#725b37}.row-actions button:hover{background:#f7f3ed}.badge{font-size:11px;background:#f3f0eb;padding:3px 8px;border-radius:12px}.empty{padding:40px 20px;text-align:center;color:#81796f}button:disabled{opacity:.4;cursor:default}button:focus-visible,input:focus-visible{outline:2px solid #9a7c50;outline-offset:2px}@media(max-width:640px){.toolbar{align-items:stretch;flex-direction:column}.search{max-width:none}.category-row{align-items:stretch;flex-direction:column;gap:8px;padding:14px}.row-actions{justify-content:flex-end}}
+.category-manager{display:grid;gap:20px}.toolbar{display:flex;align-items:flex-end;gap:16px;justify-content:space-between}.search{display:grid;gap:6px;font-size:13px;color:#625b51;max-width:440px;flex:1}.search input{min-height:44px;padding:10px 12px;border:1px solid #ddd5c9;border-radius:7px;background:white;width:100%}button{min-height:44px;padding:8px 14px;font-size:13px;border-radius:6px}.filter-toggle{padding:8px 0;color:#725b37;text-decoration:underline;text-underline-offset:4px}.primary{background:#292720;color:white;white-space:nowrap}.category-list{background:white;border:1px solid #e8e2d8;border-radius:12px;overflow:hidden}.category-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;border-bottom:1px solid #eee9e1}.category-row:last-child{border:0}.category-info{display:flex;align-items:center;gap:12px;min-width:0}strong{font-size:14px;font-weight:600;overflow-wrap:anywhere}small{display:block;font-size:12px;color:#81796f;margin-top:3px;overflow-wrap:anywhere}.branch{color:#ac9672}.row-actions{display:flex;gap:6px;flex-shrink:0}.row-actions button{color:#725b37}.row-actions button:hover{background:#f7f3ed}.badge{font-size:11px;background:#f3f0eb;padding:3px 8px;border-radius:12px}.empty{padding:40px 20px;text-align:center;color:#81796f}button:disabled{opacity:.4;cursor:default}button:focus-visible,input:focus-visible{outline:2px solid #9a7c50;outline-offset:2px}@media(max-width:640px){.toolbar{align-items:stretch;flex-direction:column}.search{max-width:none}.category-row{align-items:stretch;flex-direction:column;gap:8px;padding:14px}.row-actions{justify-content:flex-end}}
 </style>

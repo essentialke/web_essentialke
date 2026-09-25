@@ -2,17 +2,19 @@
     <div class="container mx-auto">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-2xl font-bold">Products</h2>
-            <RouterLink to="/admin/categories" class="text-sm underline">Manage Categories</RouterLink>
-            <button
-                @click="openCreateModal"
-                class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
-            >
-                Create Product
-            </button>
+            <div class="flex items-center gap-5">
+                <button type="button" @click="showFilters = !showFilters" class="text-sm underline" :aria-expanded="showFilters">{{ showFilters ? "Hide Filters" : "Filter" }}</button>
+                <button
+                    @click="openCreateModal"
+                    class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
+                >
+                    Create Product
+                </button>
+            </div>
         </div>
 
         <!-- Filtering Section -->
-        <div class="bg-white p-4 rounded-lg shadow mb-4">
+        <div v-if="showFilters" class="bg-white p-4 rounded-lg shadow mb-4">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <!-- Title Filter -->
                 <div>
@@ -179,6 +181,7 @@ import ProductTable from "../../components/admin/ProductTable.vue";
 const products = ref([]);
 const snackbar = useSnackbarStore();
 const showModal = ref(false);
+const showFilters = ref(false);
 const editingProduct = ref(null);
 const totalProducts = ref(0);
 
