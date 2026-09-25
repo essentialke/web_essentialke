@@ -34,9 +34,19 @@ const categories = computed(() => props.content?.categories || []);
 const rows = computed(() => {
     const result = [], seen = new Set();
     const collectionRoot = categories.value.find(item => item.slug === 'collections');
-    const visibleCategories = props.collectionOnly && collectionRoot
-        ? categories.value.filter(item => item.id === collectionRoot.id || item.parentId === collectionRoot.id)
-        : categories.value;
+    const isCollectionBranch = (category) => {
+        const seen = new Set();
+        let current = category;
+        while (current && !seen.has(current.id)) {
+            if (current.id === collectionRoot?.id) return true;
+            seen.add(current.id);
+            current = categories.value.find(item => item.id === current.parentId);
+        }
+        return false;
+    };
+    const visibleCategories = props.collectionOnly
+        ? categories.value.filter(isCollectionBranch)
+        : categories.value.filter(category => !isCollectionBranch(category));
     function visit(category, depth, path) {
         if (seen.has(category.id)) return;
         seen.add(category.id);
