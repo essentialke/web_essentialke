@@ -188,6 +188,14 @@
                                     {{ product.category }}
                                 </p>
                             </div>
+                            <div v-if="product.collection">
+                                <h3 class="font-semibold text-gray-900">
+                                    Collection
+                                </h3>
+                                <p class="text-gray-700">
+                                    {{ product.collection }}
+                                </p>
+                            </div>
                             <div>
                                 <h3 class="font-semibold text-gray-900">
                                     SKU
