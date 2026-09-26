@@ -150,6 +150,7 @@ async function loadProducts() {
                 limit: pageSize.value,
                 category: selectedCategory.value,
                 collection: selectedCollection.value,
+                includeAll: selectedCollection.value ? true : undefined,
                 featured: route.query.featured === "true" ? true : undefined,
                 minPrice: minPrice.value,
                 maxPrice: maxPrice.value,
@@ -249,6 +250,10 @@ watch(
     async (query) => {
         selectedCategory.value = query.category?.toString() || "";
         selectedCollection.value = query.collection?.toString() || "";
+        if (selectedCollection.value) {
+            showFilterPanel.value = false;
+            isMobileFilterOpen.value = false;
+        }
         selectedSortBy.value = query.sortBy?.toString() || "";
         selectedSortOrder.value = query.sortOrder?.toString() || "asc";
         onSale.value = query.onSale === "true";
@@ -266,15 +271,17 @@ watch(
                 <h1
                     class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 tracking-tight"
                 >
-                    Explore jewelry
-                    <span
-                        class="block text-base md:text-lg font-normal text-gray-600 mt-2"
-                    >
-                        Find a piece made to stay with you
-                    </span>
+                    <template v-if="selectedCollection">{{ selectedCollection }}</template>
+                    <template v-else>
+                        Explore jewelry
+                        <span class="block text-base md:text-lg font-normal text-gray-600 mt-2">
+                            Find a piece made to stay with you
+                        </span>
+                    </template>
                 </h1>
 
                 <button
+                    v-if="!selectedCollection"
                     type="button"
                     @click="toggleFilterPanel"
                     class="inline-flex items-center justify-center rounded-xl border border-[#d7d0c5] bg-[#f6f2ed] px-5 py-3 text-base font-medium text-[#1b2430] shadow-sm transition hover:bg-[#efe8df]"
@@ -297,7 +304,7 @@ watch(
                 </button>
             </div>
 
-            <div v-if="showFilterPanel" class="mb-6 rounded-2xl border border-[#d9d0c5] bg-[#f7f4f0] p-5 shadow-sm">
+            <div v-if="showFilterPanel && !selectedCollection" class="mb-6 rounded-2xl border border-[#d9d0c5] bg-[#f7f4f0] p-5 shadow-sm">
                 <div class="grid gap-4 lg:grid-cols-3">
                     <div>
                         <label class="mb-2 block text-2xl font-normal text-[#2b3137]">Title</label>
@@ -377,6 +384,7 @@ watch(
             <div class="flex flex-col lg:flex-row gap-6 md:gap-8">
                 <!-- Mobile Filter Button with badge for active filters -->
                 <button
+                    v-if="!selectedCollection"
                     id="mobile-filter-button"
                     @click.stop="isMobileFilterOpen = !isMobileFilterOpen"
                     class="lg:hidden w-full mb-4 px-4 py-3 bg-white rounded-lg shadow-sm text-gray-700 font-medium flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors"
@@ -406,6 +414,7 @@ watch(
 
                 <!-- Sidebar Filters -->
                 <aside
+                    v-if="!selectedCollection"
                     id="mobile-filter-panel"
                     :class="{
                         'transform translate-x-0': isMobileFilterOpen,
@@ -704,7 +713,7 @@ watch(
 
                 <!-- Overlay for mobile filter - click anywhere to close -->
                 <div
-                    v-if="isMobileFilterOpen"
+                    v-if="isMobileFilterOpen && !selectedCollection"
                     @click.stop="isMobileFilterOpen = false"
                     class="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
                 ></div>
@@ -713,7 +722,7 @@ watch(
                 <main class="flex-1">
                     <!-- Active Filters Summary (only show if filters active) -->
                     <div
-                        v-if="hasActiveFilters"
+                        v-if="hasActiveFilters && !selectedCollection"
                         class="bg-white rounded-lg shadow-sm p-4 mb-6 flex flex-wrap items-center gap-2"
                     >
                         <span class="text-sm font-medium text-gray-700 mr-1"
@@ -859,14 +868,18 @@ watch(
                             />
                         </svg>
                         <h3 class="text-xl font-medium text-gray-900 mb-2">
-                            No products found
+                            {{ selectedCollection ? `No products in ${selectedCollection}` : "No products found" }}
                         </h3>
-                        <p class="text-gray-600 max-w-md">
+                        <p v-if="selectedCollection" class="text-gray-600 max-w-md">
+                            This collection has no products available right now.
+                        </p>
+                        <p v-else class="text-gray-600 max-w-md">
                             We couldn't find any products matching your current
                             filters. Try adjusting your search criteria or
                             browsing our other categories.
                         </p>
                         <button
+                            v-if="!selectedCollection"
                             @click="resetFilters"
                             class="mt-6 px-6 py-2 bg-primary hover:bg-secondary text-white font-medium rounded-lg transition"
                         >
@@ -876,7 +889,7 @@ watch(
 
                     <!-- Pagination -->
                     <div
-                        v-if="!isLoading && products.length > 0"
+                        v-if="!selectedCollection && !isLoading && products.length > 0"
                         class="mt-12 flex flex-col md:flex-row justify-between items-center gap-4"
                     >
                         <!-- Results summary -->

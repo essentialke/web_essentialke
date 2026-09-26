@@ -17,7 +17,11 @@ const tree = computed(() => {
     const branch = (parentId, seen = new Set()) => active.filter(c => c.parentId === parentId && !seen.has(c.id)).map(c => ({ ...c, children: branch(c.id, new Set([...seen, c.id])) }));
     return branch(null);
 });
-const rootsFor = name => name === 'Shop' ? tree.value : tree.value.filter(c => name === 'Collections' ? c.slug === 'collections' : ['gifts', 'gifting', 'gift-sets'].includes(c.slug));
+const rootsFor = name => {
+    if (name === 'Shop') return tree.value;
+    if (name === 'Collections') return tree.value.find(category => category.slug === 'collections')?.children || [];
+    return tree.value.filter(category => ['gifts', 'gifting', 'gift-sets'].includes(category.slug));
+};
 const selected = computed(() => tree.value.find(c => c.id === selectedId.value));
 const categoryPath = name => ({ path: '/products', query: { category: name } });
 const collectionPath = name => ({ path: '/products', query: { collection: name } });
