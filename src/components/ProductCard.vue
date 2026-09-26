@@ -259,7 +259,13 @@ async function handleAddToWishlist() {
 }
 
 .product-card--compact .product-cover-container {
-    aspect-ratio: 4/5;
+    aspect-ratio: 1 / 1;
+}
+
+.product-card--compact .product-cover-image {
+    object-fit: contain;
+    padding: 0.5rem;
+    box-shadow: none;
 }
 
 .product-card--compact > div:last-child {
