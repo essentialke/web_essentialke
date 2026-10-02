@@ -27,9 +27,6 @@
                             <h3 class="text-lg font-semibold">
                                 {{ item.product.title }}
                             </h3>
-                            <p class="text-gray-600">
-                                {{ item.product.author }}
-                            </p>
                             <p v-if="item.color" class="text-sm text-gray-600">Finish: {{ item.color }}</p>
                             <p class="text-gray-800">
                                 <del v-if="item.product.salePrice && item.product.salePrice < item.product.price" class="mr-2 text-sm text-gray-400">KES {{ item.product.price.toFixed(2) }}</del>

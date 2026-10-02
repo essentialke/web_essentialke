@@ -56,14 +56,14 @@
                     {{ product.category || "Fiction" }}
                 </span>
                 <span
-                    v-if="product.collection"
+                    v-if="hasDisplayText(product.collection)"
                     class="ml-2 text-xs font-medium px-2.5 py-1 bg-gray-100 text-gray-700 rounded-full"
                 >
                     {{ product.collection.replace(/ Collection$/i, "") }}
                 </span>
             </div>
 
-            <!-- Title and Author -->
+            <!-- Title -->
             <div class="mb-3">
                 <h2
                     class="text-lg font-bold text-gray-900 mb-1 line-clamp-1 font-display-serif"
@@ -75,9 +75,6 @@
                         {{ product.title }}
                     </RouterLink>
                 </h2>
-                <p v-if="product.author" class="text-gray-600 text-sm">
-                    by <span class="font-medium">{{ product.author }}</span>
-                </p>
             </div>
 
             <!-- Description -->
@@ -128,6 +125,7 @@ import { faCartPlus, faCheck, faHeart } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { computed, ref } from "vue";
 import { createImageSrcSet, resolveAssetUrl } from "../utils/assetUrl";
+import { hasDisplayText } from "../utils/productText";
 
 library.add(faCartPlus, faCheck, faHeart);
 

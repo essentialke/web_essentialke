@@ -187,7 +187,6 @@ const totalProducts = ref(0);
 
 const filters = ref({
     title: "",
-    author: "",
     isbn: "",
     category: "",
     minPrice: null,
@@ -408,7 +407,6 @@ function onPageChange(newPage) {
 
 function resetFilters() {
     filters.value.title = "";
-    filters.value.author = "";
     filters.value.isbn = "";
     filters.value.category = "";
     filters.value.minPrice = null;
