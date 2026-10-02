@@ -165,7 +165,13 @@ const buttonLabel = computed(() => {
 
 async function handleAddToCart() {
     if (hasColorVariants.value) {
-        await router.push(`/product/${props.product.id}/${props.product.slug || ""}`);
+        await router.push({
+            name: "ProductDetails",
+            params: {
+                id: props.product.id,
+                slug: props.product.slug || String(props.product.id),
+            },
+        });
         return;
     }
     if (!userStore.isAuthenticated) {
