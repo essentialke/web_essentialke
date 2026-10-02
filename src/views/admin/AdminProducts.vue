@@ -354,13 +354,14 @@ async function saveProduct(productData) {
 
         if (editingProduct.value) {
             // Update existing product
-            await axios.put(
+            const response = await axios.put(
                 `/products/${editingProduct.value.id}`,
                 productData,
                 {
                     headers,
                 },
             );
+            editingProduct.value = { ...editingProduct.value, ...response.data };
         } else {
             // Create new product
             await axios.post("/products", productData, { headers });
