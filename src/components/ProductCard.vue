@@ -98,7 +98,7 @@
                         :disabled="product.quantityShop <= 0 || isAdding"
                         @click="handleAddToCart"
                         class="add-cart-button"
-                        title="Add to Cart"
+                        title="Add to cart"
                         :class="{
                             'is-disabled': product.quantityShop <= 0,
                             'is-added': added,
@@ -152,18 +152,19 @@ const imageSrcset = computed(() => createImageSrcSet(props.product.coverImageUrl
 const isOnSale = computed(() => Number(props.product.salePrice) > 0 && Number(props.product.salePrice) < Number(props.product.price));
 const effectivePrice = computed(() => isOnSale.value ? Number(props.product.salePrice) : Number(props.product.price || 0));
 const discountPercent = computed(() => Math.round((1 - Number(props.product.salePrice) / Number(props.product.price)) * 100));
+const hasColorVariants = computed(() => Array.isArray(props.product.colors) && props.product.colors.length > 0);
 const isAdding = ref(false);
 const added = ref(false);
 const buttonLabel = computed(() => {
     if (props.product.quantityShop <= 0) return "Out of stock";
-    if (props.product.colors?.length) return "Choose finish";
+    if (hasColorVariants.value) return "Add to cart";
     if (isAdding.value) return "Adding…";
     if (added.value) return "Added";
     return "Add to cart";
 });
 
 async function handleAddToCart() {
-    if (props.product.colors?.length) {
+    if (hasColorVariants.value) {
         await router.push(`/product/${props.product.id}/${props.product.slug || ""}`);
         return;
     }
