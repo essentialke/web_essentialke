@@ -164,7 +164,7 @@
                     <h1 class="text-3xl font-bold text-gray-900 mb-2">
                         {{ product.title }}
                     </h1>
-                    <p class="text-xl text-gray-600 mb-6">
+                    <p v-if="product.author?.trim()" class="text-xl text-gray-600 mb-6">
                         by {{ product.author }}
                     </p>
                     <!-- Average Rating Display -->
