@@ -28,7 +28,7 @@ import { useAuthPromptStore } from "../stores/authPrompt";
 const prompt = useAuthPromptStore();
 const destinationQuery = computed(() => ({
     redirect: prompt.productId ? "/cart" : prompt.redirect,
-    ...(prompt.productId ? { cartProductId: prompt.productId, quantity: prompt.quantity } : {}),
+    ...(prompt.productId ? { cartProductId: prompt.productId, quantity: prompt.quantity, ...(prompt.color ? { color: prompt.color } : {}) } : {}),
 }));
 const loginDestination = computed(() => ({ path: "/login", query: destinationQuery.value }));
 const registerDestination = computed(() => ({ path: "/register", query: destinationQuery.value }));

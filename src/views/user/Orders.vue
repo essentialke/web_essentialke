@@ -184,6 +184,7 @@
                                             "Product Information Unavailable"
                                         }}
                                     </h4>
+                                    <p v-if="item.color" class="text-sm text-gray-600">Finish: {{ item.color }}</p>
                                     <p
                                         v-if="item.product?.author"
                                         class="text-sm text-gray-600 truncate"

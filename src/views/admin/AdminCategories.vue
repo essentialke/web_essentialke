@@ -18,7 +18,10 @@ const load = async () => {
     try {
         content.value = (await axios.get("/contents/categories")).data.content;
     } catch (err) {
-        if (err.response?.status === 404) content.value = { categories: copyDefaultCategories() };
+        if (err.response?.status === 404) {
+            const categories = copyDefaultCategories();
+            content.value = { categories: collectionOnly.value ? categories.filter(category => category.slug === "collections") : categories };
+        }
         else error.value = "Could not load categories. Please try again.";
     } finally {
         loading.value = false;

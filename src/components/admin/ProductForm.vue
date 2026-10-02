@@ -62,6 +62,17 @@
             </select>
         </div>
 
+        <fieldset class="space-y-2">
+            <legend class="block text-sm font-medium text-gray-700">Available finishes</legend>
+            <div class="flex flex-wrap gap-5">
+                <label v-for="color in ['Gold', 'Silver']" :key="color" class="inline-flex items-center gap-2 text-sm text-gray-700">
+                    <input v-model="formData.colors" type="checkbox" :value="color" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
+                    {{ color }}
+                </label>
+            </div>
+            <p class="text-xs text-gray-500">Select the finishes customers can choose on the product page.</p>
+        </fieldset>
+
         <!-- Cover Image with Preview -->
         <div>
             <label
@@ -97,6 +108,23 @@
                         class="text-red-500 text-xs"
                         >{{ errors.coverImage }}</span
                     >
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-3">
+            <label for="galleryImages" class="block text-sm font-medium text-gray-700">Additional product photos</label>
+            <input id="galleryImages" type="file" accept="image/jpeg,image/png,image/gif" multiple @change="onGalleryFilesSelected" class="block w-full text-sm" />
+            <p class="text-xs text-gray-500">Up to 8 additional photos, 2 MB each.</p>
+            <span v-if="errors.galleryImages" role="alert" class="text-red-500 text-xs">{{ errors.galleryImages }}</span>
+            <div v-if="existingGalleryImages.length || galleryFiles.length" class="flex flex-wrap gap-3">
+                <div v-for="(image, index) in existingGalleryImages" :key="image.publicId" class="relative h-20 w-20 overflow-hidden rounded border border-gray-300">
+                    <img :src="resolveAssetUrl(image.url, { width: 160 })" :alt="`${formData.title} photo ${index + 1}`" class="h-full w-full object-cover" />
+                    <button type="button" :aria-label="`Remove saved photo ${index + 1}`" class="absolute right-1 top-1 rounded bg-white px-1 text-xs text-red-700 shadow" @click="removeExistingGalleryImage(index)">Remove</button>
+                </div>
+                <div v-for="(image, index) in galleryFiles" :key="image.url" class="relative h-20 w-20 overflow-hidden rounded border border-gray-300">
+                    <img :src="image.url" :alt="`${formData.title} new photo ${index + 1}`" class="h-full w-full object-cover" />
+                    <button type="button" :aria-label="`Remove new photo ${index + 1}`" class="absolute right-1 top-1 rounded bg-white px-1 text-xs text-red-700 shadow" @click="removeNewGalleryImage(index)">Remove</button>
                 </div>
             </div>
         </div>
@@ -221,9 +249,10 @@
 </style>
 
 <script setup>
-import { ref, watch, onMounted, computed } from "vue";
+import { ref, watch, onMounted, onBeforeUnmount, computed } from "vue";
 import CategoryEditor from "./CategoryEditor.vue";
 import { activeLeafCategories, collectionCategories } from "../../config/catalog";
+import { resolveAssetUrl } from "../../utils/assetUrl";
 
 const props = defineProps({
     product: Object, // Book object being edited (if any)
@@ -252,6 +281,7 @@ const formData = ref({
     title: "",
     category: "",
     collection: "",
+    colors: [],
     coverImageUrl: "",
     description: "",
     price: null,
@@ -264,6 +294,49 @@ const formData = ref({
 
 const errors = ref({});
 const localImageUrl = ref(null);
+const existingGalleryImages = ref([]);
+const galleryFiles = ref([]);
+const MAX_GALLERY_IMAGES = 8;
+
+function galleryImagesFor(product) {
+    return Array.isArray(product?.galleryImages)
+        ? product.galleryImages.filter(image => image && typeof image.url === "string" && typeof image.publicId === "string")
+        : [];
+}
+
+function clearGalleryFiles() {
+    galleryFiles.value.forEach(image => URL.revokeObjectURL(image.url));
+    galleryFiles.value = [];
+}
+
+function removeExistingGalleryImage(index) {
+    existingGalleryImages.value = existingGalleryImages.value.filter((_, imageIndex) => imageIndex !== index);
+}
+
+function removeNewGalleryImage(index) {
+    const [removed] = galleryFiles.value.splice(index, 1);
+    if (removed) URL.revokeObjectURL(removed.url);
+}
+
+function onGalleryFilesSelected(event) {
+    const selectedFiles = Array.from(event.target.files || []);
+    event.target.value = "";
+    errors.value.galleryImages = null;
+    if (existingGalleryImages.value.length + galleryFiles.value.length + selectedFiles.length > MAX_GALLERY_IMAGES) {
+        errors.value.galleryImages = `Choose no more than ${MAX_GALLERY_IMAGES} additional photos.`;
+        return;
+    }
+    const invalidFile = selectedFiles.find(file =>
+        !["image/jpeg", "image/png", "image/gif"].includes(file.type) || file.size > 2 * 1024 * 1024,
+    );
+    if (invalidFile) {
+        errors.value.galleryImages = invalidFile.size > 2 * 1024 * 1024
+            ? "Each additional photo must be 2 MB or smaller."
+            : "Choose JPG, PNG or GIF photos.";
+        return;
+    }
+    galleryFiles.value.push(...selectedFiles.map(file => ({ file, url: URL.createObjectURL(file) })));
+}
 
 // Compute image preview URL
 const imagePreviewUrl = computed(() => {
@@ -299,8 +372,10 @@ onMounted(() => {
         }
         formData.value = {
             ...productData,
+            colors: Array.isArray(productData.colors) ? productData.colors : [],
             coverImage: null,
         };
+        existingGalleryImages.value = galleryImagesFor(productData);
     }
 });
 
@@ -320,10 +395,15 @@ watch(
             }
             formData.value = {
                 ...productData,
+                colors: Array.isArray(productData.colors) ? productData.colors : [],
                 coverImage: null,
             };
+            clearGalleryFiles();
+            existingGalleryImages.value = galleryImagesFor(productData);
             localImageUrl.value = null; // Reset local image
         } else {
+                clearGalleryFiles();
+                existingGalleryImages.value = [];
             isEditing.value = false;
             formData.value = {
                 title: "",
@@ -331,6 +411,7 @@ watch(
                 isbn: "",
                 category: "",
                 collection: "",
+                colors: [],
                 coverImageUrl: "",
                 description: "",
                 price: null,
@@ -417,6 +498,8 @@ const onSubmit = () => {
         const formattedData = { ...formData.value };
         // Barcode is a legacy database field and is no longer part of product management.
         delete formattedData.barcode;
+        delete formattedData.galleryImages;
+        delete formattedData.colors;
         if (formattedData.publicationDate) {
             // Append time component to make it a valid ISO datetime
             formattedData.publicationDate = `${formattedData.publicationDate}T00:00:00.000Z`;
@@ -428,6 +511,9 @@ const onSubmit = () => {
             if (key === "coverImage" && formattedData[key] === null) continue;
             form.append(key, formattedData[key]);
         }
+        form.append("galleryImagesToKeep", JSON.stringify(existingGalleryImages.value));
+        galleryFiles.value.forEach(image => form.append("galleryImages", image.file));
+        form.append("colors", JSON.stringify(formData.value.colors || []));
 
         emit("save", form);
     }
@@ -441,7 +527,10 @@ const onCancel = () => {
         URL.revokeObjectURL(localImageUrl.value);
         localImageUrl.value = null;
     }
+    clearGalleryFiles();
 
     emit("cancel");
 };
+
+onBeforeUnmount(clearGalleryFiles);
 </script>

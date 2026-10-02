@@ -2,6 +2,7 @@
 import { computed, nextTick, ref } from 'vue';
 import CategoryEditor from './CategoryEditor.vue';
 import axios from 'axios';
+import { DEFAULT_CATEGORIES } from '../../config/catalog';
 const props = defineProps({ content: { type: Object, default: null }, collectionOnly: { type: Boolean, default: false } });
 const emit = defineEmits(['saved', 'cancel']);
 const search = ref('');
@@ -32,6 +33,7 @@ async function removeCategory() {
     finally { deleting.value = false; }
 }
 const categories = computed(() => props.content?.categories || []);
+const presetCollectionSlugs = new Set(DEFAULT_CATEGORIES.filter(item => item.parentId === 8).map(item => item.slug));
 const rows = computed(() => {
     const result = [], seen = new Set();
     const collectionRoot = categories.value.find(item => item.slug === 'collections');
@@ -46,7 +48,7 @@ const rows = computed(() => {
         return false;
     };
     const visibleCategories = props.collectionOnly
-        ? categories.value.filter(isCollectionBranch)
+        ? categories.value.filter(item => item.parentId === collectionRoot?.id && !presetCollectionSlugs.has(item.slug))
         : categories.value.filter(category => !isCollectionBranch(category));
     function visit(category, depth, path) {
         if (seen.has(category.id)) return;
@@ -71,7 +73,7 @@ function saved(response, category) { emit('saved', response, category); closeEdi
         <div class="toolbar">
             <button type="button" class="filter-toggle" :aria-expanded="filterOpen" @click="filterOpen = !filterOpen">{{ filterOpen ? 'Hide filter' : 'Filter' }}</button>
             <label v-if="filterOpen" class="search">Find a category<input v-model="search" type="search" placeholder="Search categories or subcategories" /></label>
-            <button ref="addButton" type="button" class="primary" :disabled="Boolean(editor) || Boolean(deleteTarget)" @click="openEditor()">+ Add category</button>
+            <button ref="addButton" type="button" class="primary" :disabled="Boolean(editor) || Boolean(deleteTarget)" @click="collectionOnly ? openEditor(null, categories.find(item => item.slug === 'collections')?.id ?? null, 'collection') : openEditor()">{{ collectionOnly ? '+ Add collection' : '+ Add category' }}</button>
         </div>
         <div v-if="editor" ref="editorHost">
             <CategoryEditor :key="editor.category?.id ?? editor.parentId ?? 'new'" :category="editor.category" :parent-id="editor.parentId" :type="editor.type" @saved="saved" @cancel="closeEditor" />

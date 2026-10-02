@@ -90,6 +90,7 @@
                 >
                     <p class="font-medium">{{ item.product.title }}</p>
                     <div class="text-sm text-gray-600">
+                        <span v-if="item.color">Finish: {{ item.color }}</span>
                         <span>Quantity: {{ item.quantity }}</span>
                         <span v-if="item.price" class="ml-4">
                             Price: KSh {{ item.price.toFixed(2) }}

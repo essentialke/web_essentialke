@@ -27,6 +27,7 @@
                                     <h4 class="font-medium">
                                         {{ item.product.title }}
                                     </h4>
+                                    <p v-if="item.color" class="text-gray-600 text-sm">Finish: {{ item.color }}</p>
                                     <p class="text-gray-600 text-sm">
                                         Qty: {{ item.quantity }} x KES
                                         {{ Number(item.product.salePrice && item.product.salePrice < item.product.price ? item.product.salePrice : item.product.price).toFixed(2) }}

@@ -29,12 +29,26 @@
                     <!-- Product Image -->
                     <div class="product-image-card rounded-lg overflow-hidden mb-6">
                         <img
-                            :src="resolveAssetUrl(product.coverImageUrl, { width: 1280 })"
-                            :srcset="createImageSrcSet(product.coverImageUrl, [480, 720, 960, 1280])"
+                            :src="resolveAssetUrl(activeProductImage?.url, { width: 1280 })"
+                            :srcset="createImageSrcSet(activeProductImage?.url, [480, 720, 960, 1280])"
                             sizes="(max-width: 900px) 100vw, 50vw"
                             :alt="product.title"
                             class="product-detail-image"
                         />
+                    </div>
+                    <div v-if="productImages.length > 1" class="product-gallery-thumbnails" aria-label="Product photos">
+                        <button
+                            v-for="(image, index) in productImages"
+                            :key="image.publicId || image.url"
+                            type="button"
+                            class="product-gallery-thumbnail"
+                            :class="{ 'is-active': activeImageIndex === index }"
+                            :aria-label="`View product photo ${index + 1}`"
+                            :aria-pressed="activeImageIndex === index"
+                            @click="activeImageIndex = index"
+                        >
+                            <img :src="resolveAssetUrl(image.url, { width: 200 })" :alt="`${product.title} photo ${index + 1}`" loading="lazy" />
+                        </button>
                     </div>
 
                     <!-- Quick Actions -->
@@ -67,6 +81,24 @@
                                     }}
                                 </span>
                             </div>
+
+                            <fieldset v-if="product.colors?.length" class="mb-5">
+                                <legend class="mb-2 text-sm font-medium text-gray-700">Finish <span class="font-normal text-gray-500">{{ selectedColor }}</span></legend>
+                                <div class="flex flex-wrap gap-2">
+                                    <button
+                                        v-for="color in product.colors"
+                                        :key="color"
+                                        type="button"
+                                        class="finish-option"
+                                        :class="{ 'is-selected': selectedColor === color }"
+                                        :aria-pressed="selectedColor === color"
+                                        @click="selectedColor = color"
+                                    >
+                                        <span class="finish-swatch" :class="color.toLowerCase()" aria-hidden="true"></span>
+                                        {{ color }}
+                                    </button>
+                                </div>
+                            </fieldset>
 
                             <!-- Quantity Selector -->
                             <div class="flex items-center mb-4">
@@ -460,9 +492,25 @@ const authPromptStore = useAuthPromptStore();
 
 const product = ref(null);
 const relatedProducts = ref([]);
+const activeImageIndex = ref(0);
+const productImages = computed(() => {
+    if (!product.value) return [];
+    const images = [
+        ...(product.value.coverImageUrl ? [{ url: product.value.coverImageUrl, publicId: product.value.coverImagePublicId }] : []),
+        ...(Array.isArray(product.value.galleryImages) ? product.value.galleryImages : []),
+    ].filter(image => typeof image?.url === "string");
+    const seen = new Set();
+    return images.filter(image => {
+        if (seen.has(image.url)) return false;
+        seen.add(image.url);
+        return true;
+    });
+});
+const activeProductImage = computed(() => productImages.value[activeImageIndex.value] || productImages.value[0]);
 const isLoading = ref(true);
 const error = ref(null);
 const quantity = ref(1);
+const selectedColor = ref("");
 const isAddingToCart = ref(false);
 const isBorrowing = ref(false);
 const isSubmittingReview = ref(false);
@@ -478,6 +526,11 @@ const editedReview = ref({
 const newReview = ref({
     rating: 0,
     comment: "",
+});
+
+watch(() => product.value?.id, () => {
+    activeImageIndex.value = 0;
+    selectedColor.value = product.value?.colors?.[0] || "";
 });
 
 // Check if coming from /library route using query parameter
@@ -534,14 +587,19 @@ const isInWishlist = computed(() => {
 });
 
 async function addToCart() {
+    if (product.value.colors?.length && !selectedColor.value) {
+        snackbarStore.addSnackbar({ message: "Choose a finish before adding this product to your cart.", type: "warning" });
+        return;
+    }
     if (!userStore.isAuthenticated) {
-        authPromptStore.open(route.fullPath, product.value.id, quantity.value);
+        authPromptStore.open(route.fullPath, product.value.id, quantity.value, selectedColor.value || null);
         return;
     }
 
     try {
         isAddingToCart.value = true;
-        await cartStore.addToCart(product.value, quantity.value); // Use cart store action
+        const cartItem = await cartStore.addToCart(product.value, quantity.value, selectedColor.value || null);
+        if (!cartItem) return;
         snackbarStore.addSnackbar({
             message: "Product added to cart successfully!",
             type: "success"
@@ -795,6 +853,41 @@ watch(
     object-position: center;
     transition: transform 700ms cubic-bezier(0.2, 0.6, 0.3, 1);
 }
+
+.finish-option {
+    display: inline-flex;
+    min-height: 42px;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    border: 1px solid #d8d2c8;
+    background: #fff;
+    color: #36322d;
+    font-size: 13px;
+}
+.finish-option.is-selected { border-color: #9a7c50; box-shadow: inset 0 0 0 1px #9a7c50; }
+.finish-swatch { width: 18px; height: 18px; border: 1px solid rgba(0, 0, 0, .18); border-radius: 50%; }
+.finish-swatch.gold { background: linear-gradient(135deg, #f6e7a5, #c29538 55%, #f2d77e); }
+.finish-swatch.silver { background: linear-gradient(135deg, #fff, #b8bec4 55%, #e9edf0); }
+.finish-option:focus-visible { outline: 2px solid #9a7c50; outline-offset: 2px; }
+
+.product-gallery-thumbnails {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px;
+    margin: -10px 0 24px;
+}
+
+.product-gallery-thumbnail {
+    aspect-ratio: 1;
+    overflow: hidden;
+    border: 1px solid #e7e0d6;
+    background: #f7f3ed;
+}
+
+.product-gallery-thumbnail.is-active { border: 2px solid #9a7c50; }
+.product-gallery-thumbnail img { width: 100%; height: 100%; object-fit: cover; }
+.product-gallery-thumbnail:focus-visible { outline: 2px solid #9a7c50; outline-offset: 2px; }
 
 .product-image-card:hover .product-detail-image { transform: scale(1.015); }
 

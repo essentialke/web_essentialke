@@ -148,8 +148,9 @@ const cartStore = useCartStore();
 const finishAuthenticatedRegistration = async () => {
     const productId = Number(route.query.cartProductId);
     const quantity = Math.max(1, Number(route.query.quantity) || 1);
+    const color = route.query.color?.toString() || null;
     if (Number.isInteger(productId) && productId > 0) {
-        await cartStore.addToCart({ id: productId }, quantity);
+        await cartStore.addToCart({ id: productId }, quantity, color);
         await cartStore.fetchCartItems();
         await router.push("/cart");
         return;

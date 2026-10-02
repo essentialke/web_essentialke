@@ -39,7 +39,13 @@ function parentLabel(category) {
 }
 async function readCatalog() {
     try { return (await axios.get("/contents/categories")).data.content; }
-    catch (err) { if (err.response?.status === 404) return { categories: copyDefaultCategories() }; throw err; }
+    catch (err) {
+        if (err.response?.status === 404) {
+            const categories = copyDefaultCategories();
+            return { categories: props.type === "collection" ? categories.filter(category => category.slug === "collections") : categories };
+        }
+        throw err;
+    }
 }
 async function load() {
     loading.value = true; error.value = "";

@@ -41,7 +41,7 @@ export const useCartStore = defineStore("cart", {
         console.error("Error fetching cart items:", error);
       }
     },
-    async addToCart(product, quantity) {
+    async addToCart(product, quantity, color = null) {
       const userStore = useUserStore();
       const snackbarStore = useSnackbarStore();
 
@@ -54,17 +54,19 @@ export const useCartStore = defineStore("cart", {
         const response = await axios.post("/cart", {
           productId: product.id,
           quantity: quantity,
+          ...(color ? { color } : {}),
         });
 
         // Update local cartItems state for immediate UI update
         const existingItemIndex = this.cartItems.findIndex(
-          (item) => item.productId === product.id,
+          (item) => item.productId === product.id && (item.color || null) === (color || null),
         );
         if (existingItemIndex !== -1) {
           this.cartItems[existingItemIndex].quantity += quantity;
         } else {
           this.cartItems.push(response.data);
         }
+        return response.data;
 
         // Optionally, show a success message or update a notification
         // alert("Book added to cart successfully!");
@@ -88,6 +90,7 @@ export const useCartStore = defineStore("cart", {
             type: "error"
           });
         }
+        return null;
       }
     },
     async updateQuantity(cartItemId, quantity) {
