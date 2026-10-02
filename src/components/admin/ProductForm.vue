@@ -267,7 +267,18 @@ const addingSubcategory = ref(false);
 const savedCategories = ref(null);
 const categoryCatalog = computed(() => savedCategories.value || props.categories);
 const categoryOptions = computed(() => activeLeafCategories(categoryCatalog.value).filter((category) => !collectionCategories(categoryCatalog.value).some((collection) => collection.id === category.id)));
-const availableCollections = computed(() => collectionCategories(categoryCatalog.value));
+const normalizeCollection = (value) => {
+    if (typeof value !== "string") return "";
+    const collection = value.trim();
+    return ["null", "undefined"].includes(collection.toLowerCase()) ? "" : collection;
+};
+const availableCollections = computed(() => {
+    const collections = collectionCategories(categoryCatalog.value);
+    const currentCollection = normalizeCollection(formData.value.collection);
+    return currentCollection && !collections.some((collection) => collection.name === currentCollection)
+        ? [...collections, { id: `current-${currentCollection}`, name: currentCollection }]
+        : collections;
+});
 const parentCategory = computed(() => categoryCatalog.value.find((category) => category.name === formData.value.category && category.status === "active"));
 function subcategorySaved(response, category) {
     savedCategories.value = response.content.categories;
@@ -372,6 +383,7 @@ onMounted(() => {
         }
         formData.value = {
             ...productData,
+            collection: normalizeCollection(productData.collection),
             colors: Array.isArray(productData.colors) ? productData.colors : [],
             coverImage: null,
         };
@@ -395,6 +407,7 @@ watch(
             }
             formData.value = {
                 ...productData,
+                collection: normalizeCollection(productData.collection),
                 colors: Array.isArray(productData.colors) ? productData.colors : [],
                 coverImage: null,
             };
