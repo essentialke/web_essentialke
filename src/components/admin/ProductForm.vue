@@ -249,7 +249,7 @@
 </style>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount, computed } from "vue";
+import { ref, watch, onBeforeUnmount, computed } from "vue";
 import CategoryEditor from "./CategoryEditor.vue";
 import { activeLeafCategories, collectionCategories } from "../../config/catalog";
 import { resolveAssetUrl } from "../../utils/assetUrl";
@@ -371,26 +371,6 @@ const imagePreviewUrl = computed(() => {
     return null;
 });
 
-onMounted(() => {
-    if (props.product) {
-        isEditing.value = true;
-        const productData = { ...props.product };
-        if (productData.publicationDate) {
-            // Format the date as YYYY-MM-DD for the input
-            productData.publicationDate = new Date(productData.publicationDate)
-                .toISOString()
-                .split("T")[0];
-        }
-        formData.value = {
-            ...productData,
-            collection: normalizeCollection(productData.collection),
-            colors: Array.isArray(productData.colors) ? productData.colors : [],
-            coverImage: null,
-        };
-        existingGalleryImages.value = galleryImagesFor(productData);
-    }
-});
-
 watch(
     () => props.product,
     (newBook) => {
@@ -440,6 +420,7 @@ watch(
         }
         errors.value = {};
     },
+    { immediate: true },
 );
 
 const validateForm = () => {
