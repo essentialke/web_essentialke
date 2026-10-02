@@ -6,12 +6,14 @@ export const useAuthPromptStore = defineStore("authPrompt", {
     redirect: "/",
     productId: null,
     quantity: 1,
+    color: null,
   }),
   actions: {
-    open(redirect = "/", productId = null, quantity = 1) {
+    open(redirect = "/", productId = null, quantity = 1, color = null) {
       this.redirect = redirect;
       this.productId = productId;
       this.quantity = quantity;
+      this.color = color;
       this.isOpen = true;
     },
     close() {

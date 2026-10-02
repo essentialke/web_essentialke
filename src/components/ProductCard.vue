@@ -158,12 +158,17 @@ const isAdding = ref(false);
 const added = ref(false);
 const buttonLabel = computed(() => {
     if (props.product.quantityShop <= 0) return "Out of stock";
+    if (props.product.colors?.length) return "Choose finish";
     if (isAdding.value) return "Adding…";
     if (added.value) return "Added";
     return "Add to cart";
 });
 
 async function handleAddToCart() {
+    if (props.product.colors?.length) {
+        await router.push(`/product/${props.product.id}/${props.product.slug || ""}`);
+        return;
+    }
     if (!userStore.isAuthenticated) {
         authPromptStore.open(router.currentRoute.value.fullPath, props.product.id, 1);
         return;

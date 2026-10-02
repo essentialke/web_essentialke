@@ -154,8 +154,9 @@ const finishLogin = async () => {
     const redirectRoute = router.currentRoute.value.query.redirect;
     const productId = Number(router.currentRoute.value.query.cartProductId);
     const quantity = Math.max(1, Number(router.currentRoute.value.query.quantity) || 1);
+    const color = router.currentRoute.value.query.color?.toString() || null;
     if (Number.isInteger(productId) && productId > 0) {
-        await cartStore.addToCart({ id: productId }, quantity);
+        await cartStore.addToCart({ id: productId }, quantity, color);
         await cartStore.fetchCartItems();
         router.push("/cart");
         return;
