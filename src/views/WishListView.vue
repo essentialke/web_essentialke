@@ -59,9 +59,6 @@
                             {{ item.product.title }}
                         </RouterLink>
                     </h3>
-                    <p v-if="item.product.author?.trim()" class="text-gray-600 mb-3">
-                        by {{ item.product.author }}
-                    </p>
                     <p
                         v-if="item.product.description"
                         class="text-gray-500 text-sm line-clamp-3 mb-4"

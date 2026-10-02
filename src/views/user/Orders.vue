@@ -186,12 +186,6 @@
                                     </h4>
                                     <p v-if="item.color" class="text-sm text-gray-600">Finish: {{ item.color }}</p>
                                     <p
-                                        v-if="item.product?.author"
-                                        class="text-sm text-gray-600 truncate"
-                                    >
-                                        {{ item.product?.author }}
-                                    </p>
-                                    <p
                                         v-if="item.product?.category"
                                         class="text-sm text-gray-500 truncate"
                                     >
@@ -229,12 +223,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { createImageSrcSet, resolveAssetUrl } from "../../utils/assetUrl";
-
-const userStore = useUserStore();
-const orders = ref([]);
-const userStats = ref({ _count: {} });
-const isLoading = ref(true);
-
 const totalOrdersCount = computed(() => {
     return userStats.value?._count?.memberTransactions ?? orders.value.length;
 });

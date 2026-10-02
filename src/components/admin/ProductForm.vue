@@ -407,7 +407,6 @@ watch(
             isEditing.value = false;
             formData.value = {
                 title: "",
-                author: "",
                 isbn: "",
                 category: "",
                 collection: "",
@@ -500,6 +499,7 @@ const onSubmit = () => {
         delete formattedData.barcode;
         delete formattedData.galleryImages;
         delete formattedData.colors;
+        formattedData.collection ??= "";
         if (formattedData.publicationDate) {
             // Append time component to make it a valid ISO datetime
             formattedData.publicationDate = `${formattedData.publicationDate}T00:00:00.000Z`;
@@ -509,7 +509,7 @@ const onSubmit = () => {
         for (const key in formattedData) {
             // Skip appending 'coverImage' if it's null (no new file selected in edit mode)
             if (key === "coverImage" && formattedData[key] === null) continue;
-            form.append(key, formattedData[key]);
+            form.append(key, formattedData[key] ?? "");
         }
         form.append("galleryImagesToKeep", JSON.stringify(existingGalleryImages.value));
         galleryFiles.value.forEach(image => form.append("galleryImages", image.file));

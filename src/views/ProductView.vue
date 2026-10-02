@@ -16,7 +16,7 @@ const selectedCategory = ref("");
 const selectedCollection = ref("");
 const minPrice = ref("");
 const maxPrice = ref("");
-const selectedAuthor = ref("");
+const selectedTitle = ref("");
 const selectedSortBy = ref("");
 const selectedSortOrder = ref("asc");
 const isMobileFilterOpen = ref(false);
@@ -33,7 +33,7 @@ const hasActiveFilters = computed(() => {
         selectedCollection.value ||
         minPrice.value ||
         maxPrice.value ||
-        selectedAuthor.value ||
+        selectedTitle.value ||
         selectedSortBy.value ||
         selectedSortOrder.value !== "asc"
         || onSale.value
@@ -154,7 +154,7 @@ async function loadProducts() {
                 featured: route.query.featured === "true" ? true : undefined,
                 minPrice: minPrice.value,
                 maxPrice: maxPrice.value,
-                author: selectedAuthor.value,
+                title: selectedTitle.value,
                 sortBy: selectedSortBy.value,
                 sortOrder: selectedSortOrder.value,
                 minQuantityShop: 0,
@@ -196,7 +196,7 @@ function resetFilters() {
     selectedCollection.value = "";
     minPrice.value = "";
     maxPrice.value = "";
-    selectedAuthor.value = "";
+    selectedTitle.value = "";
     selectedSortBy.value = "";
     selectedSortOrder.value = "asc";
     onSale.value = false;
@@ -309,7 +309,7 @@ watch(
                     <div>
                         <label class="mb-2 block text-2xl font-normal text-[#2b3137]">Title</label>
                         <input
-                            v-model="selectedAuthor"
+                            v-model="selectedTitle"
                             type="text"
                             placeholder="Search by title"
                             class="w-full rounded-xl border border-[#d5cfc5] bg-white px-4 py-3 text-lg text-[#2b3137] placeholder:text-[#7d7a75] focus:border-[#7ca9d8] focus:outline-none focus:ring-2 focus:ring-[#dfeaf7]"

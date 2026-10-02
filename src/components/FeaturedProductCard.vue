@@ -26,7 +26,7 @@ const price = computed(() => Number(isOnSale.value ? props.product.salePrice : p
         <div class="product-info">
             <div class="rating" aria-label="5 out of 5 stars"><span>★★★★★</span> <small>({{ product.reviews?.length || 12 }})</small></div>
             <RouterLink :to="`/product/${product.id}/${product.slug}`" class="product-title">{{ product.title }}</RouterLink>
-            <p class="material">{{ product.author || product.category || '18K gold plated' }}</p>
+            <p class="material">{{ product.category || '18K gold plated' }}</p>
             <p class="price"><del v-if="isOnSale">KES {{ regularPrice }}</del>KES {{ price }}</p>
         </div>
     </article>

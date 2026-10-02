@@ -164,9 +164,6 @@
                     <h1 class="text-3xl font-bold text-gray-900 mb-2">
                         {{ product.title }}
                     </h1>
-                    <p v-if="product.author?.trim()" class="text-xl text-gray-600 mb-6">
-                        by {{ product.author }}
-                    </p>
                     <!-- Average Rating Display -->
                     <div v-if="product.averageRating > 0" class="mb-4">
                         <div class="flex items-center">
@@ -220,7 +217,7 @@
                                     {{ product.category }}
                                 </p>
                             </div>
-                            <div v-if="product.collection">
+                            <div v-if="hasDisplayText(product.collection)">
                                 <h3 class="font-semibold text-gray-900">
                                     Collection
                                 </h3>
@@ -481,6 +478,7 @@ import FeaturedProductCard from "../components/FeaturedProductCard.vue";
 
 import axios from "axios";
 import { createImageSrcSet, resolveAssetUrl } from "../utils/assetUrl";
+import { hasDisplayText } from "../utils/productText";
 
 const route = useRoute();
 const router = useRouter();
