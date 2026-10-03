@@ -33,7 +33,6 @@ async function removeCategory() {
     finally { deleting.value = false; }
 }
 const categories = computed(() => props.content?.categories || []);
-const presetCollectionSlugs = new Set(DEFAULT_CATEGORIES.filter(item => item.parentId === 8).map(item => item.slug));
 const rows = computed(() => {
     const result = [], seen = new Set();
     const collectionRoot = categories.value.find(item => item.slug === 'collections');
@@ -48,7 +47,7 @@ const rows = computed(() => {
         return false;
     };
     const visibleCategories = props.collectionOnly
-        ? categories.value.filter(item => item.parentId === collectionRoot?.id && !presetCollectionSlugs.has(item.slug))
+        ? categories.value.filter(item => item.parentId === collectionRoot?.id)
         : categories.value.filter(category => !isCollectionBranch(category));
     function visit(category, depth, path) {
         if (seen.has(category.id)) return;
