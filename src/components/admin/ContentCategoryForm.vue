@@ -2,7 +2,6 @@
 import { computed, nextTick, ref } from 'vue';
 import CategoryEditor from './CategoryEditor.vue';
 import axios from 'axios';
-import { DEFAULT_CATEGORIES } from '../../config/catalog';
 const props = defineProps({ content: { type: Object, default: null }, collectionOnly: { type: Boolean, default: false } });
 const emit = defineEmits(['saved', 'cancel']);
 const search = ref('');
@@ -33,10 +32,10 @@ async function removeCategory() {
     finally { deleting.value = false; }
 }
 const categories = computed(() => props.content?.categories || []);
-const presetCollectionSlugs = new Set(DEFAULT_CATEGORIES.filter(item => item.parentId === 8).map(item => item.slug));
 const rows = computed(() => {
     const result = [], seen = new Set();
-    const collectionRoot = categories.value.find(item => item.slug === 'collections');
+    const collectionRoot = categories.value.find(item => item.slug === 'collections') ||
+        categories.value.find(item => item.name?.trim().toLowerCase() === 'collections');
     const isCollectionBranch = (category) => {
         const seen = new Set();
         let current = category;
@@ -48,7 +47,7 @@ const rows = computed(() => {
         return false;
     };
     const visibleCategories = props.collectionOnly
-        ? categories.value.filter(item => item.parentId === collectionRoot?.id && !presetCollectionSlugs.has(item.slug))
+        ? categories.value.filter(item => item.parentId === collectionRoot?.id)
         : categories.value.filter(category => !isCollectionBranch(category));
     function visit(category, depth, path) {
         if (seen.has(category.id)) return;
@@ -94,7 +93,7 @@ function saved(response, category) { emit('saved', response, category); closeEdi
                 </div>
                 <div class="row-actions"><button v-if="category.slug === 'collections'" type="button" :disabled="Boolean(editor) || Boolean(deleteTarget)" @click="openEditor(null, category.id, 'collection')">+ Add collection</button><button v-else-if="!props.collectionOnly" type="button" :disabled="Boolean(editor) || Boolean(deleteTarget)" @click="openEditor(null, category.id)">+ Add subcategory<span class="sr-only"> under {{ category.name }}</span></button><button type="button" :disabled="Boolean(editor) || Boolean(deleteTarget)" @click="openEditor(category)">Edit<span class="sr-only"> {{ category.name }}</span></button><button type="button" class="delete-button" :disabled="Boolean(editor) || Boolean(deleteTarget)" @click="deleteTarget = category; error = ''">Delete<span class="sr-only"> {{ category.name }}</span></button></div>
             </div>
-            <div v-if="!rows.length" class="empty"><p>{{ categories.length ? 'No matching categories.' : 'Start with your first category.' }}</p><p v-if="!categories.length">Add a main category, then add subcategories beneath it.</p></div>
+            <div v-if="!rows.length" class="empty"><p>{{ collectionOnly ? 'No collections yet.' : categories.length ? 'No matching categories.' : 'Start with your first category.' }}</p><p v-if="!categories.length && !collectionOnly">Add a main category, then add subcategories beneath it.</p></div>
         </div>
     </section>
 </template>
