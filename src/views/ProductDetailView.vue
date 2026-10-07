@@ -94,7 +94,7 @@
                                         :aria-pressed="selectedColor === color"
                                         @click="selectedColor = color"
                                     >
-                                        <span class="finish-swatch" :class="color.toLowerCase()" aria-hidden="true"></span>
+                                        <span class="finish-swatch" :style="{ background: finishSwatchBackground(color) }" aria-hidden="true"></span>
                                         {{ color }}
                                     </button>
                                 </div>
@@ -509,6 +509,18 @@ const isLoading = ref(true);
 const error = ref(null);
 const quantity = ref(1);
 const selectedColor = ref("");
+const metallicFinishSwatches = {
+    gold: "linear-gradient(135deg, #f6e7a5, #c29538 55%, #f2d77e)",
+    silver: "linear-gradient(135deg, #fff, #b8bec4 55%, #e9edf0)",
+    rosegold: "linear-gradient(135deg, #f8d6c8, #b76e79 55%, #f2c3b2)",
+    champagne: "linear-gradient(135deg, #fff1c7, #d6b56c 55%, #f5dda0)",
+    bronze: "linear-gradient(135deg, #d8a06d, #8c552e 55%, #c8864e)",
+    copper: "linear-gradient(135deg, #f3b98f, #b87333 55%, #e2a071)",
+};
+function finishSwatchBackground(color) {
+    const normalizedColor = String(color).trim().toLowerCase().replace(/[\s_-]+/g, "");
+    return metallicFinishSwatches[normalizedColor] || normalizedColor || "#e5e7eb";
+}
 const isAddingToCart = ref(false);
 const isBorrowing = ref(false);
 const isSubmittingReview = ref(false);
@@ -864,9 +876,7 @@ watch(
     font-size: 13px;
 }
 .finish-option.is-selected { border-color: #9a7c50; box-shadow: inset 0 0 0 1px #9a7c50; }
-.finish-swatch { width: 18px; height: 18px; border: 1px solid rgba(0, 0, 0, .18); border-radius: 50%; }
-.finish-swatch.gold { background: linear-gradient(135deg, #f6e7a5, #c29538 55%, #f2d77e); }
-.finish-swatch.silver { background: linear-gradient(135deg, #fff, #b8bec4 55%, #e9edf0); }
+.finish-swatch { display: inline-block; width: 18px; height: 18px; flex: 0 0 18px; border: 1px solid rgba(0, 0, 0, .18); border-radius: 50%; background-color: #e5e7eb; }
 .finish-option:focus-visible { outline: 2px solid #9a7c50; outline-offset: 2px; }
 
 .product-gallery-thumbnails {
