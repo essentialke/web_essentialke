@@ -63,14 +63,34 @@
         </div>
 
         <fieldset class="space-y-2">
-            <legend class="block text-sm font-medium text-gray-700">Available finishes</legend>
-            <div class="flex flex-wrap gap-5">
-                <label v-for="color in ['Gold', 'Silver']" :key="color" class="inline-flex items-center gap-2 text-sm text-gray-700">
-                    <input v-model="formData.colors" type="checkbox" :value="color" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
-                    {{ color }}
-                </label>
+            <legend class="block text-sm font-medium text-gray-700">Color variants</legend>
+            <div class="flex gap-2">
+                <input
+                    v-model="newColorVariant"
+                    type="text"
+                    maxlength="40"
+                    placeholder="e.g. Rose Gold"
+                    aria-label="New color variant"
+                    class="block min-w-0 flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                    @keydown.enter.prevent="addColorVariant"
+                />
+                <button
+                    type="button"
+                    :disabled="formData.colors.length >= MAX_PRODUCT_COLORS"
+                    class="rounded-md border border-gray-300 px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                    @click="addColorVariant"
+                >
+                    Add variant
+                </button>
             </div>
-            <p class="text-xs text-gray-500">Select the finishes customers can choose on the product page.</p>
+            <p v-if="errors.colors" role="alert" class="text-xs text-red-500">{{ errors.colors }}</p>
+            <div v-if="formData.colors.length" class="flex flex-wrap gap-2">
+                <span v-for="(color, index) in formData.colors" :key="color" class="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700">
+                    {{ color }}
+                    <button type="button" :aria-label="`Remove ${color} variant`" class="font-bold text-gray-500 hover:text-red-600" @click="removeColorVariant(index)">×</button>
+                </span>
+            </div>
+            <p class="text-xs text-gray-500">Add the finishes customers can choose on the product page (up to {{ MAX_PRODUCT_COLORS }}).</p>
         </fieldset>
 
         <!-- Cover Image with Preview -->
@@ -263,7 +283,9 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["save", "cancel", "categories-saved"]);
+const MAX_PRODUCT_COLORS = 20;
 const addingSubcategory = ref(false);
+const newColorVariant = ref("");
 const savedCategories = ref(null);
 const categoryCatalog = computed(() => savedCategories.value || props.categories);
 const categoryOptions = computed(() => activeLeafCategories(categoryCatalog.value).filter((category) => !collectionCategories(categoryCatalog.value).some((collection) => collection.id === category.id)));
@@ -308,6 +330,30 @@ const localImageUrl = ref(null);
 const existingGalleryImages = ref([]);
 const galleryFiles = ref([]);
 const MAX_GALLERY_IMAGES = 8;
+
+function addColorVariant() {
+    const color = newColorVariant.value.trim();
+    errors.value.colors = null;
+    if (!color) {
+        errors.value.colors = "Enter a color variant.";
+        return;
+    }
+    if (formData.value.colors.some((existingColor) => existingColor.toLowerCase() === color.toLowerCase())) {
+        errors.value.colors = "That color variant has already been added.";
+        return;
+    }
+    if (formData.value.colors.length >= MAX_PRODUCT_COLORS) {
+        errors.value.colors = `Add no more than ${MAX_PRODUCT_COLORS} color variants.`;
+        return;
+    }
+    formData.value.colors.push(color);
+    newColorVariant.value = "";
+}
+
+function removeColorVariant(index) {
+    formData.value.colors.splice(index, 1);
+    errors.value.colors = null;
+}
 
 function galleryImagesFor(product) {
     return Array.isArray(product?.galleryImages)
@@ -418,6 +464,7 @@ watch(
             };
             localImageUrl.value = null; // Reset local image
         }
+        newColorVariant.value = "";
         errors.value = {};
     },
     { immediate: true },

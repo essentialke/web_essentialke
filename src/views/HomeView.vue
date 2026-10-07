@@ -176,7 +176,7 @@ onBeforeUnmount(() => {
 
             <FeaturedProductsSection :loading="bestSellersLoading" :products="displayedBestSellers" kicker="Popular picks" title="Bestsellers" :limit="4" />
 
-            <FeaturedProductsSection :loading="loading.products" :products="latestProducts" kicker="Fresh arrivals" title="New Arrivals" :limit="4" secondary />
+            <FeaturedProductsSection :loading="loading.products" :products="latestProducts" kicker="Latest uploads" title="New Arrivals" :limit="4" secondary />
 
             <section class="gift-banner">
                 <div class="gift-copy">
