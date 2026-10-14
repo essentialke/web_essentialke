@@ -63,23 +63,6 @@
                                     <del v-if="product.salePrice && product.salePrice < product.price" class="mr-2 text-base font-normal text-gray-400">KES {{ product.price?.toFixed(2) }}</del>
                                     KES {{ Number(product.salePrice && product.salePrice < product.price ? product.salePrice : product.price).toFixed(2) }}
                                 </span>
-                                <span
-                                    :class="{
-                                        'text-green-600':
-                                            product.quantityShop > 10,
-                                        'text-yellow-600':
-                                            product.quantityShop <= 10 &&
-                                            product.quantityShop > 0,
-                                        'text-red-600':
-                                            product.quantityShop === 0,
-                                    }"
-                                >
-                                    {{
-                                        product.quantityShop > 0
-                                            ? `${product.quantityShop} in stock`
-                                            : "Out of stock"
-                                    }}
-                                </span>
                             </div>
 
                             <fieldset v-if="product.colors?.length" class="mb-5">
