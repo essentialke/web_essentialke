@@ -3,6 +3,7 @@ import { useUserStore } from "../stores/user";
 
 const HomeView = () => import("../views/HomeView.vue");
 const AboutView = () => import("../views/AboutView.vue");
+const ContactView = () => import("../views/ContactView.vue");
 const LoginView = () => import("../views/LoginView.vue");
 const RegisterView = () => import("../views/RegisterView.vue");
 const AcceptInvitationView = () => import("../views/AcceptInvitationView.vue");
@@ -44,6 +45,11 @@ const routes = [
     path: "/about",
     name: "About",
     component: AboutView,
+  },
+  {
+    path: "/contact",
+    name: "Contact",
+    component: ContactView,
   },
   {
     path: "/login",
@@ -154,6 +160,7 @@ const routes = [
         component: AdminDashboard,
       },
       { path: "subscribers", name: "AdminSubscribers", component: AdminSubscribers },
+      { path: "discount-codes", name: "AdminDiscountCodes", component: () => import("../views/admin/AdminDiscountCodes.vue") },
       {
         path: "products",
         component: AdminProducts,

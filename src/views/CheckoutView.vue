@@ -154,48 +154,54 @@
                             </p>
                         </div>
 
-                        <!-- Discount Code -->
-                        <!--
+                        <!-- Coupon Code -->
                         <div>
                             <label
                                 for="discountCode"
                                 class="block text-sm font-medium text-gray-700"
-                                >Discount Code</label
+                                >Coupon code</label
                             >
                             <div class="mt-1 flex rounded-md shadow-sm">
                                 <input
                                     type="text"
                                     id="discountCode"
                                     v-model="discountCode"
+                                    :disabled="isApplyingDiscount || isPlacingOrder"
+                                    @input="removeDiscount"
+                                    @keydown.enter.prevent="applyDiscountCode"
                                     class="flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-l-md sm:text-sm border-gray-300"
-                                    placeholder="Enter discount code"
+                                    placeholder="Enter coupon code"
                                 />
                                 <button
-                                    @click.prevent="applyDiscountCode"
-                                    :disabled="isApplyingDiscount"
+                                    type="button"
+                                    @click="applyDiscountCode"
+                                    :disabled="isApplyingDiscount || isPlacingOrder || !discountCode.trim() || !cartStore.cartItems.length"
                                     class="inline-flex items-center px-4 py-2 border border-transparent rounded-r-md font-semibold text-xs text-white uppercase tracking-widest bg-gray-800 hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition"
                                 >
-                                    Apply
+                                    {{ isApplyingDiscount ? "Applying..." : "Apply" }}
                                 </button>
                             </div>
                             <div
                                 v-if="discountError"
+                                role="alert"
                                 class="text-red-600 text-sm mt-1"
                             >
                                 {{ discountError }}
                             </div>
                             <div
                                 v-if="discountMessage"
+                                role="status"
                                 class="text-green-600 text-sm mt-1"
                             >
                                 {{ discountMessage }}
                             </div>
-                        </div> -->
+                            <button v-if="appliedCoupon" type="button" class="text-sm underline" :disabled="isPlacingOrder" @click="discountCode = ''; removeDiscount()">Remove coupon</button>
+                        </div>
 
                         <div class="checkout-actions">
                             <button
                                 type="submit"
-                                :disabled="isPlacingOrder || cartStore.cartItems.length === 0 || !isFormValid"
+                                :disabled="isPlacingOrder || isApplyingDiscount || cartStore.cartItems.length === 0 || !isFormValid"
                                 class="primary-checkout-action"
                             >
                                 {{ isPlacingOrder ? "Placing Order..." : `Pay KES ${payableTotal.toFixed(2)}` }}
@@ -452,7 +458,18 @@ const isApplyingDiscount = ref(false);
 const isPlacingOrder = ref(false);
 const discountError = ref("");
 const discountMessage = ref("");
-const appliedDiscount = ref(0);
+const appliedCoupon = ref(null);
+const appliedDiscount = computed(() => {
+    if (!appliedCoupon.value) return 0;
+    const { type, value } = appliedCoupon.value;
+    const discount = type === "percentage" ? cartStore.subtotal * value / 100 : value;
+    return Math.min(cartStore.subtotal, Math.max(0, discount));
+});
+const removeDiscount = () => {
+    appliedCoupon.value = null;
+    discountError.value = "";
+    discountMessage.value = "";
+};
 
 // Payment status tracking
 const showPaymentStatus = ref(false);
@@ -488,6 +505,7 @@ const openWhatsAppCheckout = () => {
         ...items,
         "",
         selectedDelivery.value ? `Delivery: ${selectedDelivery.value.label}` : "Delivery: To be confirmed",
+        appliedCoupon.value ? `Coupon: ${appliedCoupon.value.code} (KES ${appliedDiscount.value.toFixed(2)} off)` : "",
         `Total: KES ${payableTotal.value.toFixed(2)}`,
         shippingDetails.value.name.trim() ? `Name: ${shippingDetails.value.name.trim()}` : "",
     ].filter(Boolean).join("\n");
@@ -506,26 +524,29 @@ onMounted(() => {
 
 // Methods
 const applyDiscountCode = async () => {
+    if (isApplyingDiscount.value || isPlacingOrder.value) return;
+    removeDiscount();
+    const code = discountCode.value.trim();
+    if (!code) {
+        discountError.value = "Enter a coupon code.";
+        return;
+    }
+    discountCode.value = code;
     isApplyingDiscount.value = true;
-    discountError.value = "";
-    discountMessage.value = "";
-    appliedDiscount.value = 0;
 
     try {
-        const response = await axios.post("/api/discounts/verify", {
-            discountCode: discountCode.value,
-        });
+        const response = await axios.get(`/discountcodes/validate/${encodeURIComponent(code)}`);
 
-        if (response.data && response.data.appliedDiscount > 0) {
-            appliedDiscount.value = response.data.appliedDiscount;
-            discountMessage.value = "Discount applied successfully!";
+        if (response.data.valid && ["fixed", "percentage"].includes(response.data.discountCode?.type) && Number.isFinite(response.data.discountCode.value) && response.data.discountCode.value >= 0) {
+            appliedCoupon.value = response.data.discountCode;
+            discountMessage.value = `Coupon ${code} applied.`;
         } else {
-            discountError.value = "Invalid discount code.";
+            discountError.value = "Invalid or expired coupon code.";
         }
     } catch (error) {
         console.error("Error applying discount code:", error);
         discountError.value =
-            error.response?.data?.error || "Error applying discount code.";
+            error.response?.data?.message || error.response?.data?.error || "Unable to apply coupon. Please try again.";
     } finally {
         isApplyingDiscount.value = false;
     }
@@ -576,7 +597,7 @@ const placeOrder = async () => {
             billingAddress: selectedDelivery.value.label,
             shippingMethod: selectedDelivery.value.label,
             deliveryDestination: shippingDetails.value.deliveryDestination,
-            discountCode: discountCode.value || null,
+            discountCode: appliedCoupon.value?.code || null,
             notes: shippingDetails.value.deliveryNote,
             phoneNumber,
         };
@@ -597,7 +618,7 @@ const placeOrder = async () => {
             startStatusPolling(transactionId.value);
 
             // Reset form values
-            appliedDiscount.value = 0;
+            removeDiscount();
             discountCode.value = "";
 
             // Clear cart

@@ -1,16 +1,19 @@
 <template>
     <div class="container mx-auto">
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-2xl font-bold">Discount Codes</h2>
+            <h2 class="text-2xl font-bold">Coupons</h2>
             <button
                 @click="openCreateModal"
                 class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
             >
-                Create Discount Code
+                Create coupon
             </button>
         </div>
 
-        <Table :headers="discountCodeHeaders" :items="discountCodes">
+        <p class="mb-4 text-gray-600">The most recently saved active coupon appears in the welcome popup when customers sign in. Future and expired coupons are hidden.</p>
+        <p v-if="errorMessage" role="alert" class="mb-4 text-red-600">{{ errorMessage }}</p>
+        <p v-if="!discountCodes.length" class="mb-4 text-gray-600">No coupons yet. Create a code and set the percentage off to get started.</p>
+        <Table :headers="discountCodeHeaders" :items="discountCodes" :total-items="discountCodes.length">
             <template #actions="{ item }">
                 <div class="flex items-center space-x-2">
                     <button
@@ -40,8 +43,10 @@
                 </h3>
             </template>
 
+            <p v-if="errorMessage" role="alert" class="mb-4 text-red-600">{{ errorMessage }}</p>
             <DiscountCodeForm
                 :discountCode="editingDiscountCode"
+                :saving="saving"
                 @save="saveDiscountCode"
                 @cancel="closeModal"
             />
@@ -59,6 +64,8 @@ import Table from "../../components/admin/Table.vue";
 const discountCodes = ref([]);
 const showModal = ref(false);
 const editingDiscountCode = ref(null);
+const saving = ref(false);
+const errorMessage = ref("");
 
 const discountCodeHeaders = ref([
     { title: "ID", key: "id" },
@@ -81,6 +88,7 @@ async function fetchDiscountCodes() {
         discountCodes.value = response.data;
     } catch (error) {
         console.error("Error fetching discount codes:", error);
+        errorMessage.value = "Could not load coupons. Please refresh and try again.";
     }
 }
 
@@ -95,6 +103,9 @@ function editDiscountCode(discountCode) {
 }
 
 async function saveDiscountCode(discountCodeData) {
+    if (saving.value) return;
+    saving.value = true;
+    errorMessage.value = "";
     try {
         if (editingDiscountCode.value) {
             await axios.put(
@@ -105,9 +116,12 @@ async function saveDiscountCode(discountCodeData) {
             await axios.post("/discountcodes", discountCodeData);
         }
         await fetchDiscountCodes();
-        closeModal();
+        showModal.value = false;
     } catch (error) {
         console.error("Error saving discount code:", error);
+        errorMessage.value = error.response?.data?.error || "Could not save coupon. Please try again.";
+    } finally {
+        saving.value = false;
     }
 }
 
@@ -119,10 +133,12 @@ async function deleteDiscountCode(discountCodeId) {
         await fetchDiscountCodes();
     } catch (error) {
         console.error("Error deleting discount code:", error);
+        errorMessage.value = error.response?.data?.error || "Could not delete coupon. Please try again.";
     }
 }
 
 function closeModal() {
+    if (saving.value) return;
     showModal.value = false;
 }
 </script>
