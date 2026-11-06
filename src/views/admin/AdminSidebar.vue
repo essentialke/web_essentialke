@@ -93,6 +93,7 @@ const links = [
     { to: "/admin/categories", icon: "book", name: "Categories" },
     { to: "/admin/collections", icon: "book", name: "Collections" },
     { to: "/admin/subscribers", icon: "users", name: "Subscribers" },
+    { to: "/admin/discount-codes", icon: "money-check-alt", name: "Coupons" },
     {
         to: "/admin/transactions",
         icon: "money-check-alt",

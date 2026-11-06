@@ -7,7 +7,7 @@
             <input
                 type="text"
                 id="code"
-                v-model="formData.code"
+                v-model.trim="formData.code"
                 required
                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
             />
@@ -36,12 +36,15 @@
 
         <div>
             <label for="value" class="block text-sm font-medium text-gray-700"
-                >Value</label
+                >{{ formData.type === 'percentage' ? 'Percentage off (%)' : 'Amount off (KES)' }}</label
             >
             <input
                 type="number"
                 id="value"
-                v-model="formData.value"
+                v-model.number="formData.value"
+                min="0.01"
+                :max="formData.type === 'percentage' ? 100 : undefined"
+                step="0.01"
                 required
                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
             />
@@ -54,7 +57,7 @@
             <label
                 for="validFrom"
                 class="block text-sm font-medium text-gray-700"
-                >Valid From</label
+                >Valid From (optional)</label
             >
             <input
                 type="datetime-local"
@@ -71,7 +74,7 @@
             <label
                 for="validUntil"
                 class="block text-sm font-medium text-gray-700"
-                >Valid Until</label
+                >Valid Until (optional)</label
             >
             <input
                 type="datetime-local"
@@ -107,9 +110,10 @@
             </button>
             <button
                 type="submit"
+                :disabled="saving"
                 class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
             >
-                Save
+                {{ saving ? 'Saving...' : 'Save coupon' }}
             </button>
         </div>
     </form>
@@ -120,6 +124,7 @@ import { ref, watch, onMounted } from "vue";
 
 const props = defineProps({
     discountCode: Object,
+    saving: Boolean,
 });
 
 const emit = defineEmits(["save", "cancel"]);
@@ -135,6 +140,10 @@ const formData = ref({
 });
 
 const errors = ref({});
+const toLocalDateTime = (value) => {
+    const date = new Date(value);
+    return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+};
 
 onMounted(() => {
     if (props.discountCode) {
@@ -143,14 +152,10 @@ onMounted(() => {
         formData.value = {
             ...props.discountCode,
             validFrom: props.discountCode.validFrom
-                ? new Date(props.discountCode.validFrom)
-                      .toISOString()
-                      .slice(0, 16)
+                ? toLocalDateTime(props.discountCode.validFrom)
                 : null,
             validUntil: props.discountCode.validUntil
-                ? new Date(props.discountCode.validUntil)
-                      .toISOString()
-                      .slice(0, 16)
+                ? toLocalDateTime(props.discountCode.validUntil)
                 : null,
         };
     }
@@ -164,14 +169,10 @@ watch(
             formData.value = {
                 ...newDiscountCode,
                 validFrom: newDiscountCode.validFrom
-                    ? new Date(newDiscountCode.validFrom)
-                          .toISOString()
-                          .slice(0, 16)
+                    ? toLocalDateTime(newDiscountCode.validFrom)
                     : null,
                 validUntil: newDiscountCode.validUntil
-                    ? new Date(newDiscountCode.validUntil)
-                          .toISOString()
-                          .slice(0, 16)
+                    ? toLocalDateTime(newDiscountCode.validUntil)
                     : null,
             };
         } else {
@@ -193,7 +194,7 @@ const validateForm = () => {
     errors.value = {};
     let isValid = true;
 
-    if (!formData.value.code) {
+    if (!formData.value.code.trim()) {
         errors.value.code = "Code is required.";
         isValid = false;
     }
@@ -203,17 +204,30 @@ const validateForm = () => {
         isValid = false;
     }
 
-    if (formData.value.value === null || formData.value.value <= 0) {
+    if (!Number.isFinite(formData.value.value) || formData.value.value <= 0) {
         errors.value.value = "Value must be greater than 0.";
         isValid = false;
     }
 
+    if (formData.value.type === 'percentage' && formData.value.value > 100) {
+        errors.value.value = "Percentage must be 100 or less.";
+        isValid = false;
+    }
+    if (formData.value.validFrom && formData.value.validUntil && new Date(formData.value.validUntil) <= new Date(formData.value.validFrom)) {
+        errors.value.validUntil = "End date must be after the start date.";
+        isValid = false;
+    }
     return isValid;
 };
 
 const onSubmit = () => {
-    if (validateForm()) {
-        emit("save", formData.value);
+    if (!props.saving && validateForm()) {
+        const { code, type, value, validFrom, validUntil, isActive } = formData.value;
+        emit("save", {
+            code: code.trim(), type, value, isActive,
+            validFrom: validFrom ? new Date(validFrom).toISOString() : null,
+            validUntil: validUntil ? new Date(validUntil).toISOString() : null,
+        });
     }
 };
 

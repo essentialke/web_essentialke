@@ -531,23 +531,13 @@ const formData = ref({
     },
     socialLinks: [
         {
-            name: "Facebook",
-            url: "#",
-            icon: ["fab", "facebook-f"],
-        },
-        {
-            name: "Twitter",
-            url: "#",
-            icon: ["fab", "twitter"],
-        },
-        {
             name: "Instagram",
-            url: "#",
+            url: "https://www.instagram.com/essentialke?obrf=MW9id2E2MWkwcWk4dw==",
             icon: ["fab", "instagram"],
         },
         {
             name: "TikTok",
-            url: "#",
+            url: "https://www.tiktok.com/@essentialke21?_r=1&_t=ZS-9B8vxlhDxhM",
             icon: ["fab", "tiktok"],
         },
     ],
