@@ -47,6 +47,7 @@
             <DiscountCodeForm
                 :discountCode="editingDiscountCode"
                 :saving="saving"
+                :existing-codes="discountCodes.map((coupon) => coupon.code)"
                 @save="saveDiscountCode"
                 @cancel="closeModal"
             />
