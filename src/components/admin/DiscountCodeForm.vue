@@ -4,13 +4,26 @@
             <label for="code" class="block text-sm font-medium text-gray-700"
                 >Code</label
             >
+            <div class="mt-1 flex flex-col gap-2 sm:flex-row">
             <input
                 type="text"
                 id="code"
                 v-model.trim="formData.code"
                 required
-                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                :disabled="saving"
+                class="block w-full min-w-0 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
             />
+            <button
+                type="button"
+                :disabled="saving"
+                @click="generateCode"
+                class="shrink-0 rounded bg-gray-200 px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-300 disabled:opacity-50"
+            >
+                Generate code
+            </button>
+            </div>
+            <p class="mt-1 text-xs text-gray-500">Enter your own code or generate one, then save the coupon.</p>
+            <p class="sr-only" role="status">{{ generationMessage }}</p>
             <span v-if="errors.code" class="text-red-500 text-xs">{{
                 errors.code
             }}</span>
@@ -125,6 +138,7 @@ import { ref, watch, onMounted } from "vue";
 const props = defineProps({
     discountCode: Object,
     saving: Boolean,
+    existingCodes: { type: Array, default: () => [] },
 });
 
 const emit = defineEmits(["save", "cancel"]);
@@ -140,6 +154,21 @@ const formData = ref({
 });
 
 const errors = ref({});
+const generationMessage = ref("");
+const generateCode = () => {
+    if (props.saving) return;
+    const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    const usedCodes = new Set(props.existingCodes.map((code) => code.trim().toUpperCase()));
+    usedCodes.add(formData.value.code.toUpperCase());
+    let code;
+    do {
+        const random = crypto.getRandomValues(new Uint8Array(10));
+        code = `ESS-${Array.from(random, (byte) => alphabet[byte % alphabet.length]).join("")}`;
+    } while (usedCodes.has(code));
+    formData.value.code = code;
+    delete errors.value.code;
+    generationMessage.value = `Generated coupon code ${code}. Save the coupon to activate it.`;
+};
 const toLocalDateTime = (value) => {
     const date = new Date(value);
     return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
