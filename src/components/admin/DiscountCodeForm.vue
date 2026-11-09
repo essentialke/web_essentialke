@@ -162,7 +162,7 @@ const generateCode = () => {
     usedCodes.add(formData.value.code.toUpperCase());
     let code;
     do {
-        const random = crypto.getRandomValues(new Uint8Array(10));
+        const random = crypto.getRandomValues(new Uint8Array(4));
         code = `ESS-${Array.from(random, (byte) => alphabet[byte % alphabet.length]).join("")}`;
     } while (usedCodes.has(code));
     formData.value.code = code;
